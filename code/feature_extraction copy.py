@@ -21,23 +21,33 @@ from collections import defaultdict
 from scipy import sparse
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
-from nltk.corpus import brown
 import heapq
 import re
-import pronouncing
+import pronouncing as pnc
 from sklearn.base import BaseEstimator
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+
+# default values for parameters of vectorizers
+DEFAULT_CLEAN_TWEETS = False
+DEFAULT_REMOVE_REPEATED_CHARS = False
+DEFAULT_STOP_WORDS = None
+DEFAULT_SPLITTING_TYPE = None
+DEFAULT_MAX_FEATURES = None
+DEFAULT_BINARY = True
+DEFAULT_RELATIVE = False
+DEFAULT_ALPHABETIC = True
+DEFAULT_SIMPLIFY = True
 
 # Common stop words
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 STOP_WORDS = [
-    'the', 'th', 'this', 'to', 'you', 'and', 'in', 'is', 'will', 'that', 'on',
-    'of', 'just', 'it', 'for', 'be', 'at', 'about', 'going', 'yours', 'youre',
-    'your', 'youve', 'im', 'yet', 'yes', 'theres', 'about', 'he', 'her', 'she',
-    'him', 'as', 'out', 'didn', 'who', 'whom', 'we', 'we', 're', 'see', 'st',
+    'the', 'th', 'this', 'to', 'you', 'and', 'in', 'is', 'will', 'that', 'on', 
+    'of', 'just', 'it', 'for', 'be', 'at', 'about', 'going', 'yours', 'youre', 
+    'your', 'youve', 'im', 'yet', 'yes', 'theres', 'about', 'he', 'her', 'she', 
+    'him', 'as', 'out', 'didn', 'who', 'whom', 'we', 'we', 're', 'see', 'st', 
     'll', 'time', 'all', 'my', 'if'
-] + [c for c in ALPHABET]
-# None = 'english'
+    ] + [c for c in ALPHABET]
+# DEFAULT_STOP_WORDS = 'english'
 
 # special term regex
 RE_LINKS = r"https?://t.co/\w*"
@@ -73,6 +83,7 @@ RE_EMOTES += r"(?<=[ ^])[" + RE_EMO_MOUTHS_SAD_BACK + r"]+[" + \
 RE_EMOTES += r"(?<=[ ^])[" + RE_EMO_MOUTHS_NEU + r"]+[" + \
     RE_EMO_MIDDLE + r"]*[" + RE_EMO_EYES + r"]+(?=[\W])"
 
+
 def zero_default_dict(tweets):
     """Generates a default dict of zero arrays
 
@@ -82,21 +93,8 @@ def zero_default_dict(tweets):
     def zero_arr(): return np.zeros((len(tweets)))
     return defaultdict(zero_arr)
 
-def clean_tweet(tweet, remove_repeated_chars=False, stop_words=None, token_type=None):
-    """Cleans a given tweet/tweet list. Removes:
-    - Links: `http[s]://t.co/...`
-    - Non-alphabetic characters: `[^a-z]`
-    - Repeated/extraneous Spaces
 
-    Args:
-        tweet (str|list[str]): The tweet or list of tweets
-        remove_repeated_chars (bool, optional): Whether to remove duplicate consecutive characters. Defaults to False.
-        stop_words (list[str]|None, optional): The stop words to remove. Defaults to None.
-        token_type (str|None, optional): Use `stems` for a porter stemmer and `lemmas` for a lemmatizer. Defaults to None.
-
-    Returns:
-        _type_: _description_
-    """    
+def clean_tweet(tweet, remove_repeated_chars=False, stop_words=None):
     """Cleans a given tweet/tweet list. Removes:
     - Links: `http[s]://t.co/...`
     - Non-alphabetic characters: `[^a-z]`
@@ -111,7 +109,7 @@ def clean_tweet(tweet, remove_repeated_chars=False, stop_words=None, token_type=
     """
 
     if type(tweet) is not str:  # clean the list of tweets
-        return [clean_tweet(t, remove_repeated_chars, stop_words, token_type) for t in tweet]
+        return [clean_tweet(t, remove_repeated_chars, stop_words) for t in tweet]
 
     new_tweet = tweet
     # replace urls with spaces
@@ -122,25 +120,26 @@ def clean_tweet(tweet, remove_repeated_chars=False, stop_words=None, token_type=
     new_tweet = re.sub(r' +', ' ', new_tweet)
     # remove stop_words
     if stop_words is not None:
-        re_stop_words = r"(?<=\W)" + \
-            r"(?=\W)|(?<=\W)".join(stop_words) + r"(?=\W)"
+        re_stop_words = r"(?<=\W)" + r"(?=\W)|(?<=\W)".join(stop_words) + r"(?=\W)"
         new_tweet = re.sub(re_stop_words, " ", new_tweet)
     # reduce repeated characters to one character
     if remove_repeated_chars:
         new_tweet = re.sub(r"(.)\1+", r"\1", new_tweet)
     # Remove bookend spaces
     new_tweet = re.sub(r'^ | $', '', new_tweet)
+    return new_tweet
 
-    if token_type == 'lemmas':
+def split_tweet(tweet, splitter_type):
+    if splitter_type is 'lemmatizer':
         wnl = WordNetLemmatizer()
-        return ' '.join([wnl.lemmatize(w) for w in new_tweet.split(' ')])
-    elif token_type == 'stems':
+        return [wnl.lemmatize(w) for w in tweet.split(' ')]
+    elif splitter_type is 'stemmer':
         ps = PorterStemmer()
-        return ' '.join([ps.stem(w) for w in new_tweet.split(' ')])
+        return [ps.stem(w) for w in tweet.split('')]
     else:
-        return new_tweet
+        return tweet.split(' ')
 
-def generate_word_lists(tweets, remove_repeated_chars=False, stop_words=None, token_type=None):
+def generate_word_lists(tweets, remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS, stop_words=DEFAULT_STOP_WORDS):  
     """Split each tweet into a cleaned list of words
 
     Args:
@@ -150,15 +149,30 @@ def generate_word_lists(tweets, remove_repeated_chars=False, stop_words=None, to
     Returns:
         list[list[str]]: The list of lists of cleaned words
     """
-    return [clean_tweet(t, remove_repeated_chars, stop_words, token_type).split(' ') for t in tweets]
+    return [clean_tweet(t, remove_repeated_chars, stop_words).spFlit(' ') for t in tweets]
+
+
+def invert_feature_dict(values_dict, prefix=''):
+    out_list = []
+    out_keys = list(values_dict.keys())
+    out_len = len(list(values_dict.values())[0])
+
+    for idx in range(out_len):
+        vector_dict = {}
+        for key in out_keys:
+            vector_dict[f'{prefix}.{key}'] = values_dict[key][idx]
+        out_list.append(vector_dict)
+
+    return out_list
+
 
 # Find the max_features keys in a values dictionary (by the sum over their column)
-def max_features_dict(values_dict, max_features=None):
+def max_features_dict(values_dict, max_features=DEFAULT_MAX_FEATURES):
     """Find the `max_features` keys in a values dictionary (by the sum over their columns)
 
     Args:
         values_dict (dict): `(feature, array)` dictionary
-        max_features (int|None, optional): Number of features to extract. Defaults to `None`.
+        max_features (int, optional): Number of features to extract. Defaults to `DEFAULT_MAX_FEATURES`.
 
     Returns:
         dict: reduced `(feature, array)` dictionary
@@ -182,6 +196,8 @@ def max_features_dict(values_dict, max_features=None):
     return out_dict
 
 ################################################################################
+################################################################################
+################################################################################
 class TweetFeatureVectorizer(BaseEstimator):
     """A container/superclass for TweetFeatureVectorizers
         Most features (except for `Bag-of-Words` and `TF-IDF`) 
@@ -191,17 +207,16 @@ class TweetFeatureVectorizer(BaseEstimator):
     """
 
     def __init__(self, vectorizer_name='',
-                 clean_tweets=False,
-                 remove_repeated_chars=False,
-                 stop_words=None,
-                 token_type=None):
+                 clean_tweets=DEFAULT_CLEAN_TWEETS,
+                 remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS,
+                 stop_words=DEFAULT_STOP_WORDS):
         """Create the TweetFeatureVectorizer
 
         Args:
             vectorizer_name (str, optional): Name of the vectorizer. Defaults to ''.
             names (list, optional): The feature names. Defaults to [].
-            clean_tweets (_type_, optional): Whether to clean tweets (using `clean_tweet`). Defaults to False.
-            remove_repeated_chars (_type_, optional): Whether to remove repeated characters. Defaults to False.
+            clean_tweets (_type_, optional): Whether to clean tweets. Defaults to DEFAULT_CLEAN_TWEETS.
+            remove_repeated_chars (_type_, optional): Whether to remove repeated characters. Defaults to DEFAULT_REMOVE_REPEATED_CHARS.
         """
         self.vectorizer_name = vectorizer_name
         self.names = []
@@ -209,7 +224,6 @@ class TweetFeatureVectorizer(BaseEstimator):
         self.params['clean_tweets'] = clean_tweets
         self.params['remove_repeated_chars'] = remove_repeated_chars
         self.params['stop_words'] = stop_words
-        self.params['token_type'] = token_type
 
     def get_params(self, deep=True):
         return self.params
@@ -234,8 +248,7 @@ class TweetFeatureVectorizer(BaseEstimator):
 
     def generate_dict(self, tweets, raw=False):
         if self.params['clean_tweets']:  # perform cleaning if necessary
-            tweets = clean_tweet(
-                tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+            tweets = clean_tweet(tweets, self.params['remove_repeated_chars'], self.params['stop_words'])
         # create a default dict for occurrences of the feature
         out_dict = zero_default_dict(tweets)
 
@@ -259,23 +272,20 @@ class TweetFeatureVectorizer(BaseEstimator):
 
 
 ################################################################################
+################################################################################
+################################################################################
 # BAG OF WORDS
 class TweetBagOfWords(TweetFeatureVectorizer):
     def __init__(
             self,
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            binary=True):
+            max_features=DEFAULT_MAX_FEATURES,
+            binary=DEFAULT_BINARY,
+            clean_tweets=True,
+            remove_repeated_chars=True, stop_words=STOP_WORDS,):
 
-        super().__init__(vectorizer_name='bow', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='bow', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
         self.params['max_features'] = max_features
         self.params['binary'] = binary
         self.vectorizer = CountVectorizer(
@@ -290,22 +300,19 @@ class TweetBagOfWords(TweetFeatureVectorizer):
 
     def fit_transform(self, tweets, sentiments=None, **kwargs):
         if self.params['clean_tweets']:
-            tweets = clean_tweet(
-                tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+            tweets = clean_tweet(tweets, self.params['remove_repeated_chars'], self.params['stop_words'])
         out = self.vectorizer.fit_transform(tweets)
         self.names = self.vectorizer.get_feature_names_out()
         return out
 
     def transform(self, tweets, sentiments=None, **kwargs):
         if self.params['clean_tweets']:
-            tweets = clean_tweet(
-                tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+            tweets = clean_tweet(tweets, self.params['remove_repeated_chars'], self.params['stop_words'])
         return self.vectorizer.transform(tweets)
 
     def generate_dict(self, tweets, raw=False):
         if self.params['clean_tweets']:
-            tweets = clean_tweet(
-                tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+            tweets = clean_tweet(tweets, self.params['remove_repeated_chars'], self.params['stop_words'])
         t_matrix = None
         if raw:
             t_matrix = self.vectorizer.transform(tweets)
@@ -323,23 +330,21 @@ class TweetBagOfWords(TweetFeatureVectorizer):
 
 
 ################################################################################
+################################################################################
+################################################################################
 # TF-IDF
 class TweetTFIDF(TweetFeatureVectorizer):
     def __init__(
             self,
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None):
+            max_features=DEFAULT_MAX_FEATURES,
+            clean_tweets=True,
+            remove_repeated_chars=True, stop_words=STOP_WORDS):
 
-        super().__init__(vectorizer_name='tfidf', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='tfidf', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
         self.params['max_features'] = max_features
+        self.params['stop_words'] = stop_words
         self.vectorizer = TfidfVectorizer(
             max_features=max_features,
             stop_words=stop_words)
@@ -351,22 +356,19 @@ class TweetTFIDF(TweetFeatureVectorizer):
 
     def fit_transform(self, tweets, sentiments=None, **kwargs):
         if self.params['clean_tweets']:
-            tweets = clean_tweet(
-                tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+            tweets = clean_tweet(tweets, self.params['remove_repeated_chars'], self.params['stop_words'])
         out = self.vectorizer.fit_transform(tweets)
         self.names = self.vectorizer.get_feature_names_out()
         return out
 
     def transform(self, tweets, sentiments=None, **kwargs):
         if self.params['clean_tweets']:
-            tweets = clean_tweet(
-                tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+            tweets = clean_tweet(tweets, self.params['remove_repeated_chars'], self.params['stop_words'])
         return self.vectorizer.transform(tweets)
 
     def generate_dict(self, tweets, raw=False):
         if self.params['clean_tweets']:
-            tweets = clean_tweet(
-                tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+            tweets = clean_tweet(tweets, self.params['remove_repeated_chars'], self.params['stop_words'])
         t_matrix = None
         if raw:
             t_matrix = self.vectorizer.transform(tweets)
@@ -383,32 +385,21 @@ class TweetTFIDF(TweetFeatureVectorizer):
         return out_dict
 
 ################################################################################
+################################################################################
+################################################################################
 # NUMERIC METRICS
-
-
 class TweetMetrics(TweetFeatureVectorizer):
-    def __init__(self, 
-                clean_tweets=False,
-                remove_repeated_chars=False,
-                stop_words=None,
-                token_type=None):
-        super().__init__(vectorizer_name='metrics', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
+    def __init__(self, clean_tweets=True, remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS,stop_words=DEFAULT_STOP_WORDS):
+        super().__init__(vectorizer_name='metrics', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
 
     # Create the dictionary of different length metrics
     def generate_dict(self, tweets, raw=False):
         # extract tweets and words
-        word_lists = generate_word_lists(
-            tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+        word_lists = generate_word_lists(tweets, self.params['remove_repeated_chars'])
 
         # create a default dict
         out_dict = zero_default_dict(tweets)
-
-        # initialize the set of "correctly spelled" words
-        word_set = set(brown.words())
 
         for idx, (tweet, words) in enumerate(zip(tweets, word_lists)):
             out_dict['word'][idx] = len(words)
@@ -428,29 +419,24 @@ class TweetMetrics(TweetFeatureVectorizer):
             w_lengths = [len(w) for w in words]
             out_dict['average_word_length'][idx] = np.ma.average(w_lengths)
             out_dict['is_quoting'][idx] = ('"' in tweet)
-            misspelled = [(w in word_set) for w in words]
-            out_dict['misspelled_words'][idx] = np.ma.sum(misspelled)
         return out_dict
 
 
 ################################################################################
+################################################################################
+################################################################################
 # WORD LENGTH DISTRIBUTIONS
 class TweetWordLengths(TweetFeatureVectorizer):
     def __init__(
-            self, 
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            relative=False):
+            self,
+            max_features=DEFAULT_MAX_FEATURES,
+            relative=DEFAULT_RELATIVE,
+            clean_tweets=True,
+            remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS,stop_words=DEFAULT_STOP_WORDS):
 
-        super().__init__(vectorizer_name='word_lens', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='word_lens', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
         self.params['max_features'] = max_features
         self.params['relative'] = relative
 
@@ -459,24 +445,22 @@ class TweetWordLengths(TweetFeatureVectorizer):
 
 
 ################################################################################
+################################################################################
+################################################################################
 # N-LENGTH GROUP WORDS
 class TweetNWordGroups(TweetFeatureVectorizer):
     def __init__(
-            self, 
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            relative=False,
-            n=2):
+            self,
+            max_features=DEFAULT_MAX_FEATURES,
+            relative=DEFAULT_RELATIVE,
+            clean_tweets=True,
+            remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS, 
+            stop_words=DEFAULT_STOP_WORDS,
+            n = 2):
 
-        super().__init__(vectorizer_name='word_lens', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='word_lens', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
         self.params['max_features'] = max_features
         self.params['relative'] = relative
         self.params['n'] = n
@@ -486,60 +470,55 @@ class TweetNWordGroups(TweetFeatureVectorizer):
         out = []
         words = tweet.split(' ')
         for idx in range(len(words)):
-            if (len(words) - idx) > n:
+            if (len(words) - idx) > n: 
                 n_group = ' '.join(words[idx:idx+n])
                 out.append(n_group)
         return out
 
 
 ################################################################################
+################################################################################
+################################################################################
 # CHARACTER FREQUENCIES
 class TweetCharacterFrequencies(TweetFeatureVectorizer):
 
     def __init__(
-            self, 
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            relative=False,
-            alphabetic=False):
+            self,
+            max_features=DEFAULT_MAX_FEATURES,
+            relative=DEFAULT_RELATIVE,
+            alphabetic=DEFAULT_ALPHABETIC,
+            clean_tweets=DEFAULT_CLEAN_TWEETS,
+            remove_repeated_chars=False, stop_wards=DEFAULT_STOP_WORDS):
 
-        super().__init__(vectorizer_name='char_freqs', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
-        self.params['max_features'] = max_features
-        self.params['relative'] = relative
+        super().__init__(vectorizer_name='char_freqs', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
+        self.params['max_features'] = max_features,
+        self.params['relative'] = relative,
         self.params['alphabetic'] = alphabetic
 
     def extract_features(self, tweet):
         if self.params['alphabetic']:
-            return re.findall(r"[a-z]{1}", tweet)
-        return re.findall(r".{1}", tweet)
+            return re.sub(r"[^a-z]+", "", tweet)
+        return tweet
 
 
+################################################################################
+################################################################################
 ################################################################################
 # LINKS
 class TweetLinks(TweetFeatureVectorizer):
     def __init__(
-            self, 
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            relative=False):
+            self,
+            max_features=DEFAULT_MAX_FEATURES,
+            relative=DEFAULT_RELATIVE,
+            clean_tweets=DEFAULT_CLEAN_TWEETS,
+            remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS,stop_words=DEFAULT_STOP_WORDS):
 
-        super().__init__(vectorizer_name='links', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='links', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
+        
         self.params['max_features'] = max_features
         self.params['relative'] = relative
 
@@ -548,23 +527,20 @@ class TweetLinks(TweetFeatureVectorizer):
 
 
 ################################################################################
+################################################################################
+################################################################################
 # HASHTAGS
 class TweetHashtags(TweetFeatureVectorizer):
     def __init__(
-            self, 
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            relative=False):
+            self,
+            max_features=DEFAULT_MAX_FEATURES,
+            relative=DEFAULT_RELATIVE,
+            clean_tweets=DEFAULT_CLEAN_TWEETS,
+            remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS,stop_words=DEFAULT_STOP_WORDS):
 
-        super().__init__(vectorizer_name='hashtag', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='hashtag', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
         self.params['max_features'] = max_features
         self.params['relative'] = relative
 
@@ -573,23 +549,20 @@ class TweetHashtags(TweetFeatureVectorizer):
 
 
 ################################################################################
+################################################################################
+################################################################################
 # REFERENCES
 class TweetReferences(TweetFeatureVectorizer):
     def __init__(
-            self, 
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            relative=False):
+            self,
+            max_features=DEFAULT_MAX_FEATURES,
+            relative=DEFAULT_RELATIVE,
+            clean_tweets=DEFAULT_CLEAN_TWEETS,
+            remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS,stop_words=DEFAULT_STOP_WORDS):
 
-        super().__init__(vectorizer_name='references', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='references', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
         self.params['max_features'] = max_features
         self.params['relative'] = relative
 
@@ -598,24 +571,20 @@ class TweetReferences(TweetFeatureVectorizer):
 
 
 ################################################################################
+################################################################################
+################################################################################
 # EMOTICONS
 class TweetEmoticons(TweetFeatureVectorizer):
     def __init__(
-            self, 
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            relative=False,
-            simplify=False):
+            self,
+            max_features=DEFAULT_MAX_FEATURES,
+            relative=DEFAULT_RELATIVE,
+            simplify=DEFAULT_SIMPLIFY,
+            clean_tweets=DEFAULT_CLEAN_TWEETS,
+            remove_repeated_chars=DEFAULT_REMOVE_REPEATED_CHARS,stop_words=DEFAULT_STOP_WORDS):
 
-        super().__init__(vectorizer_name='emotes', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='emotes', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
         self.params['max_features'] = max_features
         self.params['relative'] = relative
         self.params['simplify'] = simplify
@@ -683,23 +652,20 @@ class TweetEmoticons(TweetFeatureVectorizer):
 
 
 ################################################################################
+################################################################################
+################################################################################
 # PHONETICS
 class TweetPhonetics(TweetFeatureVectorizer):
     def __init__(
-            self, 
-            clean_tweets=False,
-            remove_repeated_chars=False,
-            stop_words=None,
-            token_type=None,
-            max_features=None,
-            relative=False):
+            self,
+            max_features=DEFAULT_MAX_FEATURES,
+            relative=DEFAULT_RELATIVE,
+            clean_tweets=True,
+            remove_repeated_chars=False, stop_words=None):
 
-        super().__init__(vectorizer_name='phonetics', 
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
-
+        super().__init__(vectorizer_name='phonetics', clean_tweets=clean_tweets,
+                         remove_repeated_chars=remove_repeated_chars, stop_words=stop_words)
+        
         self.params['max_features'] = max_features
         self.params['relative'] = relative
 
@@ -710,7 +676,7 @@ class TweetPhonetics(TweetFeatureVectorizer):
 
         for w in words:
             # Break the word into its phones
-            phones = pronouncing.phones_for_word(w)
+            phones = pnc.phones_for_word(w)
 
             # break the phones into a list and add to it
             if len(phones) > 0:
@@ -720,19 +686,15 @@ class TweetPhonetics(TweetFeatureVectorizer):
 
 
 ################################################################################
+################################################################################
+################################################################################
 # POETIC PHONETICS
 class TweetPoetics(TweetFeatureVectorizer):
 
     def __init__(self,
                  clean_tweets=True,
-                 remove_repeated_chars=False,
-                 stop_words=None,
-                 token_type=None):
-        super().__init__(vectorizer_name='poetics',
-                         clean_tweets=clean_tweets,
-                         remove_repeated_chars=remove_repeated_chars,
-                         stop_words=stop_words,
-                         token_type=token_type)
+                 remove_repeated_chars=False, stop_words=None):
+        super().__init__(vectorizer_name='poetics')
 
     # create a breakdown of the phonetics used in the tweets
     def generate_dict(self, tweets, raw=False):
@@ -756,15 +718,14 @@ class TweetPoetics(TweetFeatureVectorizer):
             r"(?=[ $])|(?<=[ ^])".join(sibilant_set) + r"(?=[ $])"
 
         # break the tweets into word lists
-        word_lists = generate_word_lists(
-            tweets, self.params['remove_repeated_chars'], self.params['stop_words'], self.params['token_type'])
+        word_lists = generate_word_lists(tweets)
 
         # iterate through tweets and extract the emoticons
         for idx, words in enumerate(word_lists):
             # iterate through the words
             for w in words:
                 # Break the word into its phones
-                phones = pronouncing.phones_for_word(w)
+                phones = pnc.phones_for_word(w)
                 if len(phones) > 0:
                     phones = phones[0]
                 else:
