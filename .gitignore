@@ -1,2 +1,6 @@
 code/__pycache__
 code/__pycache__/*
+
+report/*.*
+!report/*.pdf
+!report/*.tex
