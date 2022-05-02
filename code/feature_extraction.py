@@ -118,8 +118,6 @@ def clean_tweet(tweet, remove_repeated_chars=False, stop_words=None, token_type=
     new_tweet = re.sub(RE_LINKS, ' ', new_tweet)
     # replace non alphabetic characters with spaces
     new_tweet = re.sub(r'[^a-z]+', ' ', new_tweet)
-    # reduce the spacing between words
-    new_tweet = re.sub(r' +', ' ', new_tweet)
     # remove stop_words
     if stop_words is not None:
         re_stop_words = r"(?<=\W)" + \
@@ -128,6 +126,8 @@ def clean_tweet(tweet, remove_repeated_chars=False, stop_words=None, token_type=
     # reduce repeated characters to one character
     if remove_repeated_chars:
         new_tweet = re.sub(r"(.)\1+", r"\1", new_tweet)
+    # reduce the spacing between words
+    new_tweet = re.sub(r' +', ' ', new_tweet)
     # Remove bookend spaces
     new_tweet = re.sub(r'^ | $', '', new_tweet)
 
