@@ -64,6 +64,20 @@ Extreme suffixing can also be circumvented through stemming or lemmatization, wh
 % but language-agnostic implementation of stemming or lemmatization, which are discussed in Section~\ref{subsection:tokens}.
 % Determining the best 
 
+\subsubsection{Stems}\label{sec:stems}
+Using the Porter stemmer algorithm, the roots of words can be found by removing common english stems. 
+This was considered as an alternative to tokenising by words. 
+However, this may be less effective with words that aren't in english (as they may use different suffixes).
+This method is tested ...
+
+\subsubsection{Lemmas}\label{sec:lemmas}
+Lemmatization finds the true root of words based on their language definitions.
+Implementing lemmatization required a vast corpus of different languages, 
+with the possibility of overlapping lemmas. 
+The corpus recommended in \texttt{NLTK} contains only the english language. 
+Therefore it was not used to generate results.
+This suffers from the same drawback as stemming, relying the text being in english.
+
 \subsubsection{Stopwords}
 
 Initially, the dataset was analyzed to see how different words are distributed throughout it.
@@ -71,7 +85,7 @@ This yielded a word cloud over both the training and testing sets, with the most
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width = 0.45\textwidth]{wc-all-clean-default.png}
+	\includegraphics[width = 0.45\textwidth]{wc/all-clean-default.png}
 	\caption{Word cloud over all tweets}
 	\label{fig:wc-all}
 \end{figure} 
@@ -81,21 +95,21 @@ To get a better picture of these common, but useful words, three more word cloud
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width = 0.45\textwidth]{wc-positive-clean-default.png}
+	\includegraphics[width = 0.45\textwidth]{wc/positive-clean-default.png}
 	\caption{Word cloud over positive training tweets}
 	\label{fig:wc-pos}
 \end{figure} 
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width = 0.45\textwidth]{wc-neutral-clean-default.png}
+	\includegraphics[width = 0.45\textwidth]{wc/neutral-clean-default.png}
 	\caption{Word cloud over neutral training tweets}
 	\label{fig:wc-neu}
 \end{figure} 
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width = 0.45\textwidth]{wc-negative-clean-default.png}
+	\includegraphics[width = 0.45\textwidth]{wc/negative-clean-default.png}
 	\caption{Word cloud over negative training tweets}
 	\label{fig:wc-neg}
 \end{figure} 
@@ -141,22 +155,10 @@ While the data is given as a raw text format, there are multiple features which 
 This includes extraction of individual words or characters (1-grams of each) and word pairings (2-grams).
 If $N > 1$, important orderings/configurations of words can be identified, but at the cost of exponentially increasing the possible number of features.
 With a vocabulary of $w$ unique words, there can be as many as $w^N$ distinct N-grams.
-Therefore, the N-grams used for model construction are:
-\begin{itemize}
-	\item 1-grams of words,
-	\item 1-grams of characters,
-	\item 2-grams of words.
-\end{itemize}
+Therefore, the N-grams used for model construction were 1-grams on words, 1-grams on characters, and 2-grams on words.
+2-grams on characters were not considered 
 
 This method will requires that tweets are cleaned, but may not need stopword removal.
-
-\subsubsection{Stems}\label{sec:stems}
-Can find the roots for english words by removing stems. It can also be used as a cleaning step.
-However, this may be less effective with words that aren't in english (as they may use different suffixes),
-or words which are misspelled.
-
-\subsubsection{Lemmas}\label{sec:lemmas}
-This method finds the true roots of words. This suffers from the same drawback as stemming, relying the text being in english.
 
 \subsubsection{Word Lengths}
 
