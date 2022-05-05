@@ -155,12 +155,15 @@ To avoid these issues, a certain subset of the features is selected using the fo
 One way I use to determine the predictive potential of a feature is through comparitive bar graphs.
 I generate bar graphs comparing the distributions over the top 10 features in a feature set by the averages of their values, such that:
 \begin{equation*}
-	\emph{average}_{s \subset S} = \frac{\sum f_{s \subset S}}{\sum f_S}
+	\emph{average}_{\sigma \subset S} = \frac{\sum f_{\sigma \subset S}}{\sum f_S}
 \end{equation*}
-where $s$ is a subset of all the sentiments $S$, $f$ is the vector of values per tweet for a specific feature in a feature type, and $N$ is the number of instances.
+where $\sigma$ is a subset of all the sentiments $S$, $f$ is the vector of values per tweet for a specific feature in a feature type.
 If too many of the same features appear in all sentiments' bar graphs, then the feature type is removed from the final feature list.
 
-\subsubsection{}
+\subsubsection{Max Features Number}
+
+In a set with $20000+$ instances, the number of possible linguistic features is quite high.
+Therefore, I chose to perform a test with the chosen feature types by taking 
 
 % \section{Old Methodology}
 
