@@ -4,6 +4,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
+\usepackage{bm}
 \graphicspath{{img/}}
 \DeclareUnicodeCharacter{F8FF}{$\diamond$}
 \sloppy
@@ -22,22 +23,21 @@
 
 Sentiment analysis is a field of natural language processing focusing on the classification of text by its perceived sentiment.
 It speeds up measuring the opinions of groups of people and can be applied in many fields such as marketing, politics or sociology.
-My goal is to develop and train several reliable {T}witter sentiment classifiers.
+My goal is to develop and train three differenct reliable {T}witter sentiment classifiers and one baseline model.
 This involves developing methods to extract and select useful features from a dataset of posts, 
 then to choose and evaluate highly reliable classifier models.
 
 \subsection{Dataset}\label{sec:dataset}
 
 The given dataset provided contains two lists of {T}witter posts (tweets) made on the platform prior to 2017 \cite{dataset}.
-The two files enclosed in the dataset are a \texttt{Train.csv} for training and a \texttt{Test.csv} for testing. 
+The two files enclosed are a \texttt{Train.csv} for training and a \texttt{Test.csv} for testing. 
 Each tweet is an instance in the dataset.
 The training set contains $21802$ labelled instances and the testing set contains $6099$ instances. 
 For each instance, included is the tweet text and tweet ID. 
 The tweets included vary in content.
-For example, some tweets are not in English: ``\textit{season in the sun versi nirvana rancak gak..slow rockkk...}''.
-In the training file is also a column containing the true sentiment of each tweet. 
-Tweets can either have a "positive", "neutral" or "negative" sentiment.
-the distribution of the sentiments across the training set is shown in Figure~\ref{fig:sent-dist}.
+For example, some tweets are not entirely in English: ``\textit{season in the sun versi nirvana rancak gak..slow rockkk...}''.
+In the training file also contains the true sentiment of each tweet. 
+Tweets can either have a "positive", "neutral" or "negative" sentiment, distributed as shown in Figure~\ref{fig:sent-dist}.
 
 \begin{figure}[!h]
 	\centering
@@ -52,272 +52,769 @@ the distribution of the sentiments across the training set is shown in Figure~\r
 % at a conceptual level; a detailed description of the code is not appropriate for the report. The description
 % should be similar to what you would see in a machine learning conference paper.
 
-This section contains a breakdown of the process through which I develop the final models chosen in Section~\ref{sec:results}.
+This section contains a breakdown of the process through which the final models are developed.
 The following methods are developed with reference to prior works on {T}witter sentiment analysis by Go et al. \shortcite{go09} and Barbosa and Feng \shortcite{robustnoisy10}.
 
-\subsection{Instance Cleaning}
+\subsection{Instance cleaning}
 
 Some of the features extracted rely on the text in the tweets to be pruned of unwanted characters and words.
 I have opted to generate a separate list containing the cleaned versions of tweets.
 Cleaning involves removing stopwords (Section~\ref{sec:stopwords}), links, tweet hashtags, tweet mentions, numbers, non-alphanumeric characters.
 Also performed is the reduction of repeated letters with more than two occurrences to just two, as suggested by Go et al. \shortcite{go09}.
 
+Neither stemming nor lemmatization are used in the final models as I consider both too language-dependent
+to be useful in non-English instances.
+
 \subsubsection{Stopwords}\label{sec:stopwords}
 
-Manual stopword list construction is tedious and often inexhaustive (especially if I can only determine English stopwords). 
+Manual stopword list construction is tedious and inexhaustive (I cannot identify stopwords in certain languages). 
 Therefore, I have opted to start with the {P}ython Natural Language Toolkit's (\texttt{NLTK}) defined stopword list, which includes multiple languages \cite{nltk}.
-However, since I do not want to blindly rely on this list, 
+To test the efficacy of this set, 
 I generate a set of word clouds over the training cleaned tweets (using the \texttt{NLTK} stopword list) grouped by sentiment.
-This then informs whether I need to manually add a few terms which the used list does not include.
+This then informs whether more terms need to be manually added the used list does not include.
 
-\subsection{Feature Extraction}
+\subsection{Feature extraction}
 
-\subsubsection{{T}witter Features}
+\subsubsection{How many features per feature type is enough?}
+
+With over 20000 instances in the training dataset, some of the feature types defined will generate a massive range of results.
+When vectorizing, it is best practice to implement a hard maximum for the unique number of features in a feature type.
+To determine this number $M_f$, the top candidate classifiers are compared for each of $M_f \in \lbrace 10, 100, 1000, 5000 \rbrace$ by the accuracies found using Section~\ref{sec:choosing2}.
+
+\subsubsection{{T}witter features}
 
 First, relying on personal usage experience with {T}witter, I extract the main platform-specific features from the tweet text.
 These are:
 \begin{itemize}
-	\item \textbf{Hashtags} (e.g. \texttt{\#term}): Used to associate tweets with a certain term on the platform.
-	\item \textbf{Mentions} (e.g. \texttt{@user}): Used when addressing a specific user on the platform.
-	\item \textbf{Links} (e.g. \texttt{https://t.co/id}): Used to link to a website with an id on the platform's redirect service.
+	\item Hashtags (e.g. \texttt{\#term}): Used to associate tweets with a certain term on the platform.
+	\item Mentions (e.g. \texttt{@user}): Used when addressing a specific user on the platform.
+	\item Links (e.g. \texttt{https://t.co/id}): Used to link to a website with an id on the platform's redirect service.
 \end{itemize}  
 
 These are integrated within the {T}witter platform, meaning they are widely used by users.
 Therefore, these features may be strongly correlated to the sentiments and should be isolated for use in the final models.
 
-\subsubsection{Linguistic Features}
+\subsubsection{Linguistic features}
 
 Next, linguistic features are extracted and used to tokenize the tweet in different ways. 
 
 \begin{itemize}
-	\item \textbf{Part-of-Speech Tags}: Extracting the grammar types of words.
-	\item \textbf{Words}: Words used in the tweet.
-	\item \textbf{Word 2-Grams}: Word pairs used in the tweet.
-	\item 
+	\item Part-of-Speech Tags: Extracting the grammatical types of words.
+	\item Words
+	\item Word 2-Grams: Word pairs used in the tweet.
+	\item Word Lengths: The lengths of words used as tokens.
+	\item Phonetics: The phenomes of english words as defined in the CMU Pronounciation Dictionary \cite{cmudict}.
+	\item Alphabetic Characters
+	\item Punctuation (\texttt{.?!,:;-()[]\{\}"'/})
 \end{itemize}  
 
-These feature types may all have certain features which are strongly correlated to a certain sentiment.
-For example, a positive \texttt{big win} versus a negative \texttt{big disaster} word pairing.
-
-Neither stemming nor lemmatization are used in the final models as both are too language-dependent.
-An example for this is the stemming of \texttt{bare} to \texttt{bar}, removing meaning from the word.
-The best option, a multilinguistic lemmatizer, requires a neural network and training \cite{lemmat19}.
+These feature types may all have features which are strongly correlated to sentiments.
+For example, a positive \texttt{big win} versus a negative \texttt{big disaster} word 2-gram.
 
 \begin{itemize}
-	\item \textbf{Punctuation} (\texttt{.?!,:;-()[]\{\}"'/}): Certain punctuation such as exclamation marks may indicate a non-neutral tweet, for example.
-	\item \textbf{Emoticons} (e.g. \texttt{:(} or \texttt{:)}): The rise of \texttt{ASCII} emoticons allows users to quickly express their emotions, which correlate strongly to the sentiment of their text.
+	\item Emoticons (e.g. \texttt{:(} or \texttt{:)}): The rise of \texttt{ASCII} emoticons allows users to quickly express their emotions, which correlate strongly to the sentiment of their text.
 \end{itemize}  
 
 Extracting emoticons is done differently to the method used in the Go et al. \shortcite{go09} research,
-since there are emoticons which are not considered, such as the backwards happy \texttt{(:} emoticon or the cutesie \texttt{:3}.
-Instead, emoticons are defined as a string comprised of eye characters (\texttt{;:8=}), optional middle characters (\texttt{,'-"*}), 
-and mouth characters divided into four categories: happy (\texttt{)3]}), sad (\texttt{\\/([}), neutral (\texttt{pl|}) and surprised (\texttt{vo}).
-There are also defined backwards versions of the happy and sad mouths.
-On top of the basic emoticons, others that can be detected are: \texttt{;3}, \texttt{:'o} or \texttt{]":}. 
-The detected emoticons are then simplified into one of four emoticons based on their mouth's category: happy \texttt{:)}, sad \texttt{:(}, neutral \texttt{:|} and surprised \texttt{:o}.
+since their method misses a large number of emoticons, such as the surprised duck \texttt{:v} emoticon.
+Instead, emoticons are defined as a string comprised of eyes (\texttt{;:8=}), optional middle characters (\texttt{,'-"*}), 
+and mouths divided into categories: happy (\texttt{)3]}), sad (\texttt{\\/([}), neutral (\texttt{pl|}) and surprised (\texttt{vo}).
+The detected emoticons (including reversed versions) are simplified into one of four emoticons based on their mouth category: happy \texttt{:)}, sad \texttt{:(}, neutral \texttt{:|} and surprised \texttt{:o}.
+
+\subsubsection{Metric features}
+
+These are largely numeric counts of the previously mentioned feature types within a tweet.
 
 \begin{itemize}
-	\item \textbf{}
+	\item Number of Words
+	\item Number of Characters
+	\item Number of Alphabetic Characters
+	\item Number of Links
+	\item Number of Hashtags
+	\item Number of Mentions
+	\item Number of Emoticons
+	\item Quoting (e.g. \texttt {"text"}): Can also be called \emph{retweets}, represented in the dataset with quote marks.
+	\item Average Word Length
 \end{itemize}
 
-\subsubsection{Metric Features}
+These metrics can help differentiate between a neutral tweet and a sentimental tweet (e.g. emoticons are correlated to emotion).
 
-These are largely numeric counts of other features in a tweet.
+% \begin{itemize}
+% 	\item \textbf{Poetic Phonetics}: The counts of occurrences of sibilance, fricatives and plosives, detected using the phenomes of words \cite{tsur2019phonetic,cmudict}.
+% \end{itemize}
 
-\begin{itemize}
-	\item \textbf{Number of Words}: More words could indicate a more sentimental tweet.
-	\item \textbf{Number of Characters}: It may be that longer tweets contain more non-neutral sentiments than shorter ones.
-	\item \textbf{Number of Alphabetic Characters}: This will be correlated to more writing, which has a higher chance of being sentimental.
-	\item \textbf{Number of Links}: More linking could indicate a less sentimental tweet.
-	\item \textbf{Number of Hashtags}: More hashtags could indicate a more sentimental tweet.
-	\item \textbf{Number of Mentions}: More mentions could indicate a more sentimental tweet.
-	\item \textbf{Number of Emoticons}: More emoticons could indicate a more sentimental tweet.
-	\item \textbf{Retweets} (e.g. \texttt {"text"}): Whether a post quotes another post on the platform. This form of quoting could be used for argumentation.
-	\item \textbf{Average Word Length}: Tweets with longer words may tend in a certain direction.
-\end{itemize}
+% The significance of phonetic symbolism is highly debated, however, out of personal curiosity, I have decided to included this set.
 
 \subsubsection{Vectorization}
 
-For all features except the metric features, they can be vectorized by TF-IDF, or occurrence counts.
+For all non-metric feature types, they can be vectorized by $TF$-$IDF$, or by occurrence counts.
 At the time that the data was collected, tweets were limited to 140 characters \cite{tweetlen}.
-This suggests that most features (such as word pairs) are not likely to appear the same time more than once in a tweet (except for stopwords).
-Therefore, most features are vectorized with raw counts. 
-Certain features that may appear more than once per tweet have their vectorization method chosen using the bar-graph comparison test described in Section~\ref{sec:bargraphs}.
+This suggests that most features (including word pairs) will only appear at most once in a tweet.
+Therefore, non-metric features are vectorized with their occurrence counts. 
 
-\subsection{Feature Selection}
+% \subsubsection{Bar graph comparison test}\label{sec:bargraphs}
 
-There are many candidates for features to analyse the sentiments of the tweets.
-Using all of them may result in overfitting of the models and increases the time and space complexity of model construction.
-To avoid these issues, a certain subset of the features is selected using the following tests.
+% One way I use to determine the predictive potential of a feature is through comparitive bar graphs.
+% I generate bar graphs comparing the distributions over the top 10 features in a feature set by the proportion of their values, such that:
+% \begin{equation*}
+% 	\emph{proportion}_{\bm{\sigma} \subseteq S} = \frac{\sum f_{\bm{\sigma} \subseteq S}}{\sum f_S}
+% \end{equation*}
+% where $\bm{\sigma}$ is a subset of all the sentiments $S$, $f$ is the vector of values per tweet for a specific feature in a feature type.
+% If too many of the same features appear in all sentiments' bar graphs, then the feature type is considered weaker for the model fit.
 
-\subsubsection{Bar Graph Comparison Test}\label{sec:bargraphs}
+\subsection{Classifier Selection}
 
-One way I use to determine the predictive potential of a feature is through comparitive bar graphs.
-I generate bar graphs comparing the distributions over the top 10 features in a feature set by the averages of their values, such that:
-\begin{equation*}
-	\emph{average}_{\sigma \subset S} = \frac{\sum f_{\sigma \subset S}}{\sum f_S}
-\end{equation*}
-where $\sigma$ is a subset of all the sentiments $S$, $f$ is the vector of values per tweet for a specific feature in a feature type.
-If too many of the same features appear in all sentiments' bar graphs, then the feature type is removed from the final feature list.
+\subsubsection{Baseline}
 
-\subsubsection{Max Features Number}
+The baseline model used will be 0-R: most frequent class.
+All chosen models need to outperform this one.
 
-In a set with $20000+$ instances, the number of possible linguistic features is quite high.
-Therefore, I chose to perform a test with the chosen feature types by taking 
+\subsubsection{Classifiers Considered}
 
-% \section{Old Methodology}
+The following classifiers and parameters are first all measured as described in Section~\ref{sec:choosing2}:
 
-% \subsection{Raw Data Analysis}
-% First, the dataset was looked at based on the raw data as it came.
-% The raw tweets are strings of lowercase text and contain misspelled words, non-alphanumeric characters, Twitter-specific features (mentions and hashtags), and foreign language.
+\textbf{Multinomial/Bernoulli Naive Bayes}:
+Naive bayes classifiers each assuming likelihood distributions of features corresponding to their name.
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|c|c|}			
+			\hline
+			Parameter & Values Considered \\
+			\hline\hline
+			Include Label Priors & Yes, No \\
+			Alpha Smoothing ($\alpha$) & 0, 1, 10 \\
+			\hline
+		\end{tabular}
+		\caption{Naive Bayes Parameter Sets}
+		\label{tbl:nb-options}
+	\end{center}
+\end{table}
 
-% The distribution of the sentiment labels across the training set was also considered, 
-% displaying a clear majority of neutral tweets \ref{fig:sent-dist}.
+\textbf{Logistic Regressions}:
+Linear statistical models for categorical labels. 
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|c|c|}			
+			\hline
+			Parameter & Values Considered \\
+			\hline\hline
+			Fit Intercept & Yes, No \\
+			Maximum Iterations & 100, 500 \\
+			Optimizer Algorithm & \texttt{sag}, \texttt{saga} \\
+			\hline
+		\end{tabular}
+		\caption{Logistic Regression Parameter Sets}
+		\label{tbl:lr-options}
+	\end{center}
+\end{table}
 
-% \subsection{Preprocessing}
+\textbf{Decision Trees}:
+Branching tree classifiers. 
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{|c|c|}			
+			\hline
+			Parameter & Values Considered \\
+			\hline\hline
+			Maximum Depth & 1, 100, 500 \\
+			\hline
+		\end{tabular}
+		\caption{Decision Tree Parameter Sets}
+		\label{tbl:dt-options}
+	\end{center}
+\end{table}
 
-% \subsubsection{Cleaning}
-% Some features required the text instances be cleaned before extraction.
-% Cleaning involves pruning the tweet of certain characters and features to varying degrees.
-% Usually, this means isolating only the alphabetic characters in the text, and performing simple casefolding.
-% Since all instances in the dataset are lowercase, only removal of unwanted characters was necessary.
-% A type of cleaning considered was the removal of repeated consecutive characters.
-% An example where this may have been useful is when encountering words such as \texttt{hey}, which can also appear as \texttt{heyyy}.
-% One issue with this method of avoiding suffixing is that it can change the meanings of certain words. For example, \texttt{good} becomes \texttt{god}.
-% Extreme suffixing can also be circumvented through stemming or lemmatization, which are discussed in Sections~\ref{sec:stems} and \ref{sec:lemmas}.
+\textbf{$K$ Nearest Neighbours}:
+Decides classes based on the $K$ closest neighbours' class labels (in a weighted voting system). 
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|c|c|}			
+			\hline
+			Parameter & Values Considered \\
+			\hline\hline
+			$K$ Neighbours & 1, 10, 100, 500 \\
+			Vote Weighting & \texttt{uniform}, \texttt{distance} \\
+			\hline
+		\end{tabular}
+		\caption{K-Nearest Neighbour Parameter Sets}
+		\label{tbl:knn-options}
+	\end{center}
+\end{table}
 
-% % However, consecutive repeated character pruning was arguably just a primitive, 
-% % but language-agnostic implementation of stemming or lemmatization, which are discussed in Section~\ref{subsection:tokens}.
-% % Determining the best 
+\textbf{Support Vector Classifiers}:
+Create borders between classes with the use of support vectors. 
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|c|c|}			
+			\hline
+			Parameter & Values Considered \\
+			\hline\hline
+			Kernel Function & Linear, Cubic \\
+			Regularization $C$ & 0.1, 1, 3 \\
+			Decision Function & One-v-One, One-v-Rest \\
+			\hline
+		\end{tabular}
+		\caption{Support Vector Classifier Parameter Sets}
+		\label{tbl:svc-options}
+	\end{center}
+\end{table}
 
-% \subsubsection{Stems}\label{sec:stems}
-% Using the Porter stemmer algorithm, the roots of words can be found by removing common English stems. 
-% This was considered as an alternative to tokenising by words. 
-% However, this may be less effective with words that aren't in English (as they may use different suffixes).
-% This method is tested ...
 
-% \subsubsection{Lemmas}\label{sec:lemmas}
-% Lemmatization finds the true root of words based on their language definitions.
-% Implementing lemmatization required a vast corpus of different languages, 
-% with the possibility of overlapping lemmas. 
-% The corpus recommended in \texttt{NLTK} contains only the English language. 
-% Therefore it was not used to generate results.
-% This suffers from the same drawback as stemming, relying the text being in English.
+\subsection{Evaluation}\label{sec:evaluations}
 
-% \subsubsection{Stopwords}
+\subsubsection{Which Classifier/Parameter Configurations Are Best?}\label{sec:choosing2}
 
-% Initially, the dataset was analyzed to see how different words are distributed throughout it.
-% This yielded a word cloud over both the training and testing sets, with the most common words being considered for the stopword list (Figure~\ref{fig:wc-all}).
+To reduce the inital set of possible estimators to just two selected candidates,
+they are each cross-validated twice. 
+First, 5-fold cross validation scores are calculated on the dataset as is.
+Then, 5-fold cross validation scores are calculated on largest subset of the data with a uniform distribution of sentiments.
+These 10 scores are then averaged $\bar{x}$, and their standard deviations $s$ found. 
+The top candidate classifier/parameter configurations are found based on the highest approximate $80\%$ lower bounds ($\bar{x} - s$).
 
-% \begin{figure}[!h]
-% 	\centering
-% 	\includegraphics[width = 0.45\textwidth]{wc/all-clean-final.png}
-% 	\caption{Word cloud over all tweets}
-% 	\label{fig:wc-all}
-% \end{figure} 
 
-% The construction of the list was contextual, as some words that appear frequently may still be useful for sentiment analysis.
-% To get a better picture of these common, but useful words, three more word clouds were constructed over the word lists per sentiment (Figures~\ref{fig:wc-pos}, \ref{fig:wc-neu}, and \ref{fig:wc-neg}).
+\subsubsection{Evaluation Metrics}\label{sec:evalmetrics}
 
-% \begin{figure}[!h]
-% 	\centering
-% 	\includegraphics[width = 0.45\textwidth]{wc/positive-clean-final.png}
-% 	\caption{Word cloud over positive training tweets}
-% 	\label{fig:wc-pos}
-% \end{figure} 
+The following metrics are generated for each classifier that makes it past Section~\ref{sec:choosing2}:
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|c|c|}			
+			\hline
+			Metric & Formula \\
+			\hline\hline & \\
+			Accuracy & $\frac{\#\emph{Correct}}{n}$ \\ & \\
+			Precision (per class) & $\frac{TP}{TP + FP}$ \\ & \\
+			Recall (per class) & $\frac{TP}{TP + FN}$ \\ & \\
+			$F_1$-Score (per class) & $\frac{2TP}{2TP + FP + FN}$ \\ & \\
+			\hline
+		\end{tabular}
+		\caption{Metrics calculated for chosen models}
+		\label{tbl:cand-metrics}
+	\end{center}
+\end{table}
 
-% \begin{figure}[!h]
-% 	\centering
-% 	\includegraphics[width = 0.45\textwidth]{wc/neutral-clean-final.png}
-% 	\caption{Word cloud over neutral training tweets}
-% 	\label{fig:wc-neu}
-% \end{figure} 
+On top of this, the model's confusion matrix is also generated, for visual representations potential biases.
 
-% \begin{figure}[!h]
-% 	\centering
-% 	\includegraphics[width = 0.45\textwidth]{wc/negative-clean-final.png}
-% 	\caption{Word cloud over negative training tweets}
-% 	\label{fig:wc-neg}
-% \end{figure} 
+\subsubsection{Which models are label distribution agnostic?}
 
-% However this method did not consider stopwords in other languages (since English tweets are an overwhelming majority in the dataset).
-% Since manual stopword list construction was not as exhaustive as the data required,
-% the {P}ython \texttt{NLTK} module's stopword corpus is used where necessary \cite{nltk}.
+It is unknown whether the \texttt{Text.csv} labels are distributed similarly to those in \texttt{Train.csv}.
+Therefore evaluation metrics are generated on four $4:1$ train to test sets.
+First are generated a set of training and testing sets on the maximum subset of the data with uniform sentiment distribution.
+Next are generated a set of training and testing sets on the data with sentiments distributed as given (Randomly).
+From these, four sets of evaluation metrics are generated:
+\begin{itemize}
+	\item Uniform Training and Random Testing
+	\item Uniform Training and Uniform Testing
+	\item Random Training and Random Testing
+	\item Random Training and Uniform Testing
+\end{itemize}
 
-% \subsection{Vectorization}
+The evaluation metrics as generated in Section~\ref{sec:evalmetrics} are then compared to see which of the models 
+(including the baseline) are most agnostic to sentiment distributions.
 
-% Classifiers in the \texttt{SciKit-learn} {P}ython library require that all data be vectorized to a real-valued space.
-% The following vectorizers were used.
+\section{Results}\label{sec:results}
+% Results: Present the results, in terms of evaluation metric(s) and, ideally, illustrative examples and diagrams.
 
-% \subsubsection{Count}
+\subsection{Comparing the effects of stopword removal}
 
-% Vectorising the tweet into term counts can highlight terms which appear more often in tweets for certain sentiments.
-% This is implemented using \texttt{SciKit-learn}'s \texttt{CountVectorizer} \cite{skl}.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{wc/text-clean-no-stopwords.png}
+	\caption{Word cloud over the cleaned tweets without stopword removal}
+	\label{fig:wc-nosw}
+\end{figure} 
 
-% \subsubsection{TF-IDF}
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{wc/all-clean-nltk.png}
+	\caption{Word cloud over the cleaned tweets with removal using the \texttt{NLTK} list}
+	\label{fig:wc-nltk}
+\end{figure} 
 
-% This measure of relative word frequency provides more insight, 
-% as it measures words that appeach more often in one tweet relative to their overall frequency.
-% This is implemented using \texttt{SciKit-learn}'s \texttt{TfidfVectorizer} \cite{skl}.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{wc/all-clean-final.png}
+	\caption{Word cloud over the cleaned tweets with removal using the modified \texttt{NLTK} list}
+	\label{fig:wc-final}
+\end{figure} 
 
-% \subsubsection{Metrics}
+\subsection{Highest cross-validation accuracy per number of maximum features}\label{sec:mfresults}
 
-% The final type of vectorization that will occur is in the form of metrics. 
-% Certain metrics such as world length may be distributed differently based on the sentiment of the tweet.
-% This is implemented by creating a list of mappings to metrics, then vectorizing with \texttt{SciKit-learn}'s \texttt{DictVectorizer} \cite{skl}.
+After generating calssifiers for each of the following values $M_f$, the following boasted the highest scores calculated using Section~\ref{sec:choosing2}.
 
-% \subsubsection{Why not hashing?}
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Logistic Regression \\
+			Fit Intercept & Yes \\
+			Maximum Iterations & 500 \\
+			Optimizer Algorithm & \texttt{sag} \\
+			\hline\hline
+			Accuracy &  0.5529\\
+			Standard Deviation &  0.04754 \\
+			\hline
+		\end{tabular}
+		\caption{Top classifier for $M_f = 10$}
+		\label{tbl:mf10}
+	\end{center}
+\end{table}
 
-% The \texttt{SciKit-learn} library suggests another text feature extractor in the form of hashing.
-% This is not used here as the distinct advantage this vectorizer has over others is saving on space and time \cite{skl}.
-% While the dataset contains more than 20000 tweets, using the other vectorizers did not present such issues in practice.
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Logistic Regression \\
+			Fit Intercept & Yes \\
+			Maximum Iterations & 500 \\
+			Optimizer Algorithm & \texttt{sag} \\
+			\hline\hline
+			Accuracy &  0.5858\\
+			Standard Deviation &  0.03109 \\
+			\hline
+		\end{tabular}
+		\caption{Top classifier for $M_f = 100$}
+		\label{tbl:mf100}
+	\end{center}
+\end{table}
 
-% \subsection{Features}\label{subsection:tokens}
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Bernoulli NB \\
+			Include Priors & Yes \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Accuracy &  0.6054\\
+			Standard Deviation &  0.01067 \\
+			\hline
+		\end{tabular}
+		\caption{Top classifier for $M_f = 1000$}
+		\label{tbl:mf1000}
+	\end{center}
+\end{table}
 
-% While the data is given as a raw text format, there are multiple features which can be extracted for the purpose of sentiment analysis.
 
-% \subsubsection{N-grams}
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Bernoulli NB \\
+			Include Priors & Yes \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Accuracy &  0.6321\\
+			Standard Deviation &  0.01504 \\
+			\hline
+		\end{tabular}
+		\caption{Top classifier for $M_f = 5000$}
+		\label{tbl:mf5000}
+	\end{center}
+\end{table}
 
-% This includes extraction of individual words or characters (1-grams of each) and word pairings (2-grams).
-% If $N > 1$, important orderings/configurations of words can be identified, but at the cost of exponentially increasing the possible number of features.
-% With a vocabulary of $w$ unique words, there can be as many as $w^N$ distinct N-grams.
-% Therefore, the N-grams used for model construction were 1-grams on words, 1-grams on characters, and 2-grams on words.
-% 2-grams on characters were not considered 
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Bernoulli NB \\
+			Include Priors & Yes \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Accuracy &  0.6329\\
+			Standard Deviation &   0.01237 \\
+			\hline
+		\end{tabular}
+		\caption{Top classifier for $M_f = 10000$}
+		\label{tbl:mf10000}
+	\end{center}
+\end{table}
 
-% This method will requires that tweets are cleaned, but may not need stopword removal.
+Since the model accuracy begins to plateau at $M_f = 10000$,
+The final classifer models are constructed using $M_f = 10000$ as an upper bound for features per feature type.
 
-% \subsubsection{Word Lengths}
+\subsection{The top 3 parameter/classifier configurations}\label{sec:top3}
 
-% A tokenization where the tokens generated are the lengths of the words in the tweet.
+The following parameter configurations yield the 3 highest scores as defined in Section~\ref{sec:choosing2}
 
-% \subsubsection{Character Frequencies}
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Bernoulli NB \\
+			Include Priors & Yes \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Accuracy &  0.6329\\
+			Standard Deviation &   0.01237 \\
+			\hline
+		\end{tabular}
+		\caption{Top classifier (Classifier 1) for $M_f = 10000$}
+		\label{tbl:1st10000}
+	\end{center}
+\end{table}
 
-% \subsubsection{Links}
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Bernoulli NB \\
+			Include Priors & No \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Accuracy &  0.6319\\
+			Standard Deviation &   0.01210 \\
+			\hline
+		\end{tabular}
+		\caption{2nd best classifier (Classifier 2) for $M_f = 10000$}
+		\label{tbl:2nd10000}
+	\end{center}
+\end{table}
 
-% \subsubsection{Hashtags}
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Multinomial NB \\
+			Include Priors & Yes \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Accuracy &  0.6319\\
+			Standard Deviation &   0.01210 \\
+			\hline
+		\end{tabular}
+		\caption{3rd best classifier (Classifier 3) for $M_f = 10000$}
+		\label{tbl:3rd10000}
+	\end{center}
+\end{table}
 
-% \subsubsection{Mentions}
+It appears that the top classifiers according to the used scoring value are all Naive Bayes classifiers.
 
-% \subsubsection{Emoticons}
+\subsection{Generating evaluation metrics for the final 4 models}
 
-% \subsubsection{Simple Metrics}
+Generated based on Section~\ref{sec:evalmetrics}. 
+Per-class metrics are shown in order of postive, neutral, then negative sentiments.
 
-% \subsubsection{Phonetic Frequencies}
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & 0-R \\
+			\hline\hline
+			Training & Uniform \\
+			Testing & Uniform \\
+			\hline
+			Accuracy & 0.33 \\
+			Precisions (+, n, --) 	& 0.00, 0.00, 0.33 \\
+			Recalls (+, n, --) 		& 0.00, 0.00, 1.00 \\
+			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.50 \\
+			\hline\hline
+			Training & Random \\
+			Testing & Random \\
+			\hline
+			Accuracy & 0.58 \\
+			Precisions (+, n, --) 	& 0.00, 0.58, 0.00 \\
+			Recalls (+, n, --) 		& 0.00, 1.00, 0.00 \\
+			$F_1$ Scores (+, n, --) & 0.00, 0.73, 0.00 \\
+			\hline\hline
+			Training & Random \\
+			Testing & Uniform \\
+			\hline
+			Accuracy & 0.33 \\
+			Precisions (+, n, --) 	& 0.00, 0.33, 0.00 \\
+			Recalls (+, n, --) 		& 0.00, 1.00, 0.00 \\
+			$F_1$ Scores (+, n, --) & 0.00, 0.50, 0.00 \\
+			\hline\hline
+			Training & Uniform \\
+			Testing & Random \\
+			\hline
+			Accuracy & 0.17 \\
+			Precisions (+, n, --) &  0.00, 0.00, 0.17 \\
+			Recalls (+, n, --) & 0.00, 0.00, 1.00 \\
+			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.29 \\
+			\hline
+		\end{tabular}
+		\caption{Metrics of Baseline classifier for $M_f = 10000$}
+		\label{tbl:metrics-base10000}
+	\end{center}
+\end{table}
 
-% \subsubsection{Poetic Phonetics}
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/MostFrequentClass0R-Uniform-confusion-matrix.png}
+	\caption{Baseline classifier's confusion matrix for uniform training and uniform testing data}
+	\label{fig:cf-base-uu}
+\end{figure} 
 
-% \subsection{Model Selection}
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/MostFrequentClass0R-Random-confusion-matrix.png}
+	\caption{Baseline classifier's confusion matrix for random training and random testing data}
+	\label{fig:cf-base-rr}
+\end{figure} 
 
-% \subsubsection{Feature Selection}
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/MostFrequentClass0R-RandomTrainingandUniformTesting-confusion-matrix.png}
+	\caption{Baseline classifier's confusion matrix for random training and uniform testing data}
+	\label{fig:cf-base-ru}
+\end{figure} 
 
-% \subsubsection{Classifiers}
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/MostFrequentClass0R-UniformTrainingandRandomTesting-confusion-matrix.png}
+	\caption{Baseline classifier's confusion matrix for uniform training and random testing data}
+	\label{fig:cf-base-ur}
+\end{figure} 
 
-% \subsubsection{Evaluation Metrics}
 
-% \section{Results}\label{sec:results}
-% % Results: Present the results, in terms of evaluation metric(s) and, ideally, illustrative examples and diagrams.
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Bernoulli NB \\
+			Include Priors & Yes \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Training & Uniform \\
+			Testing & Uniform \\
+			\hline
+			Accuracy & 0.62 \\
+			Precisions (+, n, --) &  0.65, 0.54, 0.64 \\
+			Recalls (+, n, --) & 0.69, 0.43, 0.73 \\
+			$F_1$ Scores (+, n, --) & 0.67, 0.48, 0.68 \\
+			\hline\hline
+			Training & Random \\
+			Testing & Random \\
+			\hline
+			Accuracy & 0.61 \\
+			Precisions (+, n, --) &  0.78, 0.60, 0.50 \\
+			Recalls (+, n, --) & 0.14, 0.98, 0.74 \\
+			$F_1$ Scores (+, n, --) & 0.24, 0.74, 0.01 \\
+			\hline\hline
+			Training & Random \\
+			Testing & Uniform \\
+			\hline
+			Accuracy & 0.41 \\
+			Precisions (+, n, --) &  0.94, 0.36, 1.00 \\
+			Recalls (+, n, --) & 0.21, 0.99, 0.02 \\
+			$F_1$ Scores (+, n, --) & 0.35, 0.53, 0.04 \\
+			\hline\hline
+			Training & Uniform \\
+			Testing & Random \\
+			\hline
+			Accuracy & 0.64 \\
+			Precisions (+, n, --) &  0.56, 0.87, 0.48 \\
+			Recalls (+, n, --) & 0.81, 0.51, 0.84 \\
+			$F_1$ Scores (+, n, --) & 0.66, 0.64, 0.61 \\
+			\hline
+		\end{tabular}
+		\caption{Metrics of Classifier 1 for $M_f = 10000$}
+		\label{tbl:metrics-1st10000}
+	\end{center}
+\end{table}
 
-% \subsection{aw data}
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorTrue-Uniform-confusion-matrix.png}
+	\caption{Classifier 1's confusion matrix for uniform training and uniform testing data}
+	\label{fig:cf-1st-uu}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorTrue-Random-confusion-matrix.png}
+	\caption{Classifier 1's confusion matrix for random training and random testing data}
+	\label{fig:cf-1st-rr}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorTrue-RandomTrainingandUniformTesting-confusion-matrix.png}
+	\caption{Classifier 1's confusion matrix for random training and uniform testing data}
+	\label{fig:cf-1st-ru}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorTrue-UniformTrainingandRandomTesting-confusion-matrix.png}
+	\caption{Classifier 1's confusion matrix for uniform training and random testing data}
+	\label{fig:cf-1st-ur}
+\end{figure} 
+
+
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Bernoulli NB \\
+			Include Priors & No \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Training & Uniform \\
+			Testing & Uniform \\
+			\hline
+			Accuracy & 0.62 \\
+			Precisions (+, n, --) &  0.65, 0.54, 0.64 \\
+			Recalls (+, n, --) & 0.69, 0.43, 0.73 \\
+			$F_1$ Scores (+, n, --) & 0.67, 0.48, 0.68 \\
+			\hline\hline
+			Training & Random \\
+			Testing & Random \\
+			\hline
+			Accuracy & 0.61 \\
+			Precisions (+, n, --) &  0.74, 0.60, 0.75 \\
+			Recalls (+, n, --) & 0.17, 0.98, 0.01 \\
+			$F_1$ Scores (+, n, --) & 0.27, 0.74, 0.02 \\
+			\hline\hline
+			Training & Random \\
+			Testing & Uniform \\
+			\hline
+			Accuracy & 0.42 \\
+			Precisions (+, n, --) &  0.91, 0.36, 0.96 \\
+			Recalls (+, n, --) & 0.25, 0.98, 0.04 \\
+			$F_1$ Scores (+, n, --) & 0.39, 0.53, 0.07 \\
+			\hline\hline
+			Training & Uniform \\
+			Testing & Random \\
+			\hline
+			Accuracy & 0.64 \\
+			Precisions (+, n, --) &  0.56, 0.87, 0.48 \\
+			Recalls (+, n, --) & 0.81, 0.51, 0.84 \\
+			$F_1$ Scores (+, n, --) & 0.66, 0.64, 0.61 \\
+			\hline
+		\end{tabular}
+		\caption{Metrics of Classifer 2 for $M_f = 10000$}
+		\label{tbl:metrics-2nd10000}
+	\end{center}
+\end{table}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorFalse-Uniform-confusion-matrix.png}
+	\caption{Classifier 2's confusion matrix for uniform training and uniform testing data}
+	\label{fig:cf-2nd-uu}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorFalse-Random-confusion-matrix.png}
+	\caption{Classifier 2's confusion matrix for random training and random testing data}
+	\label{fig:cf-2nd-rr}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorFalse-RandomTrainingandUniformTesting-confusion-matrix.png}
+	\caption{Classifier 2's confusion matrix for random training and uniform testing data}
+	\label{fig:cf-2nd-ru}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorFalse-UniformTrainingandRandomTesting-confusion-matrix.png}
+	\caption{Classifier 2's confusion matrix for uniform training and random testing data}
+	\label{fig:cf-2nd-ur}
+\end{figure} 
+
+\begin{table}[!h]
+	\begin{center}
+		\begin{tabular}{|l|l|}			
+			\hline
+			Parameter & Value \\
+			\hline\hline
+			Classifier & Multinomial NB \\
+			Include Priors & Yes \\
+			$\alpha$ Smoothing & 1 \\
+			\hline\hline
+			Training & Uniform \\
+			Testing & Uniform \\
+			\hline
+			Accuracy & 0.62 \\
+			Precisions (+, n, --) &  0.66, 0.57, 0.62 \\
+			Recalls (+, n, --) & 0.66, 0.42, 0.78 \\
+			$F_1$ Scores (+, n, --) & 0.66, 0.48, 0.69 \\
+			\hline\hline
+			Training & Random \\
+			Testing & Random \\
+			\hline
+			Accuracy & 0.61 \\
+			Precisions (+, n, --) &  0.76, 0.60, 0.60 \\
+			Recalls (+, n, --) & 0.19, 0.97, 0.01 \\
+			$F_1$ Scores (+, n, --) & 0.30, 0.75, 0.02 \\
+			\hline\hline
+			Training & Random \\
+			Testing & Uniform \\
+			\hline
+			Accuracy & 0.42 \\
+			Precisions (+, n, --) &  0.92, 0.36, 1.00 \\
+			Recalls (+, n, --) & 0.26, 0.98, 0.02 \\
+			$F_1$ Scores (+, n, --) & 0.41, 0.53, 0.04 \\
+			\hline\hline
+			Training & Uniform \\
+			Testing & Random \\
+			\hline
+			Accuracy & 0.62 \\
+			Precisions (+, n, --) &  0.57, 0.87, 0.44 \\
+			Recalls (+, n, --) & 0.78, 0.48, 0.87 \\
+			$F_1$ Scores (+, n, --) & 0.66, 0.62, 0.59 \\
+			\hline
+		\end{tabular}
+		\caption{Metrics of Classifer 3 for $M_f = 10000$}
+		\label{tbl:metrics-3rd10000}
+	\end{center}
+\end{table}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-Uniform-confusion-matrix.png}
+	\caption{Classifier 3's confusion matrix for uniform training and uniform testing data}
+	\label{fig:cf-3rd-uu}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-Random-confusion-matrix.png}
+	\caption{Classifier 3's confusion matrix for random training and random testing data}
+	\label{fig:cf-3rd-rr}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-RandomTrainingandUniformTesting-confusion-matrix.png}
+	\caption{Classifier 3's confusion matrix for random training and uniform testing data}
+	\label{fig:cf-3rd-ru}
+\end{figure} 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width = 0.42\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-UniformTrainingandRandomTesting-confusion-matrix.png}
+	\caption{Classifier 3's confusion matrix for uniform training and random testing data}
+	\label{fig:cf-3rd-ur}
+\end{figure} 
+
+
 
 \section{Analysis}
 % Discussion / Critical Analysis: Contextualise the systems' behaviour, based on the understanding of the
@@ -328,6 +825,46 @@ Therefore, I chose to perform a test with the chosen feature types by taking
 % the different methods you selected. This is not to say that you should ignore the relative performance of
 % different runs over the data, but rather that you should think beyond simple numbers to the reasons that
 % underlie them.
+
+\subsection{How the stopword removal modifies the data}
+The cleaning technique used highlights a large number of unformed word parts, such as ``\emph{s}'' or ``\emph{u}'', as shown in Figure~\ref{fig:wc-nosw}.
+The initial stopword list misses some highly repeated terms with no meaning (e.g. ``\emph{th}'') as is displayed in Figure~\ref{fig:wc-nltk}. 
+These terms need to be removed manually, to yield a final word cloud shown in Figure~\ref{fig:wc-final}.
+Although words like ``\emph{tomorrow}'' appear frequently, they may be parts of sentiment indicative word 2-grams (e.g. ``\emph{happy tomorrow}''), and are therefore not removed.
+
+\subsection{How the maximum number of features per feature type $M_f$ modifies the models}
+The results shown in Section~\ref{sec:mfresults} highlight an interesting pattern in the classifiers.
+For lower max feature values $M_f$, the highest performing model is the logistic regression,
+whereas past $M_f = 1000$, the best model is the Bernoulli Naive Bayes. 
+This suggests that logistic regressions are better for smaller dimensions of features.
+This is likely due to the logistic regressions reliance on optimization to find the best model.
+Since optimization is perfomed to find local minima in errors in the model, 
+a smaller feature space results in fewer local minima, 
+and therefore a higher likelihood in the local minimum being the overall minimum of errors.
+The results also highlight the Bernoulli Naive Bayes model, as it yields the highest 80\% accuracy for larger feature spaces.
+Most of the classifiers considered rely on solving an optimization problem to determine a support vector, or a set of weights.
+The Naive Bayes models do rely on optimization, and are therefore more reliable in complex feature spaces.
+
+\subsection{The best classifier/parameter configurations}
+
+The three best model configurations for a large feature space are Naive Bayes estimators, as shown in Section~\ref{sec:top3}.
+The highest scoring model is the Bernoulli Naive Bayes, with $\alpha = 1$ laplace smoothing and sentiment label priors included.
+
+
+Both multinomial and bernoulli naive bayes classifiers are very similar in function, one relies on multiple possible events, whereas the other relies on binary events.
+With this data and feature set, the bernoulli naive bayes classifier tends to be more applicable, since most features either appear or don't appear within a tweet (appear in binary events).
+This is reflected in the best possible model, while the multinomial model is still high accuracy relative to non-naive bayes methods (Table~\ref{tbl:3rd10000}).
+
+
+The naive bayes classifiers tend to yield higher accuracies than the other considered classifiers, since they scale easily with the size of the feature space.
+Other models rely on optimization, which increases in complexity with the feature space.
+As more features are added, there will be a higher number of possible minima and maxima to consider when optimizing, decreasing the chances of the true best configuration being discovered.
+I would need to either start with an initial state that is known to be closest to the most accurate, or to train the models on a large number of iterations.
+Both of these options are not realistic with limited time, and with a large feature space as I am using.
+
+\subsection{Of the final 4 models, which are most sentiment distribution agnostic}
+
+
 
 \section{Conclusions}
 % Conclusion: Demonstrate your identified knowledge about the problem.
