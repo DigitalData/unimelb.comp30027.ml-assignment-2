@@ -24,7 +24,7 @@
 \section{Introduction}\label{sec:intro}
 % Introduction: a short description of the problem and data set
 
-Sentiment analysis focuses on the classifying text into sentiments.
+Sentiment analysis focuses on classifying text into sentiments.
 My goal is to apply sentiment analysis to develop and train three reliable sentiment classifiers and one baseline for {T}witter posts (tweets).
 This involves extracting and selecting useful features from a dataset of tweets, 
 then choosing and evaluating highly reliable classifiers.
@@ -97,9 +97,9 @@ part-of-speech tags, lemmas, lemma 2-grams, phonetics (phenomes of words), punct
 Lemmas are preferred over words, as they group words of the same root \cite{nltk}.
 
 
-Emoticons are identified as string combinations of eye, middle and mouth characters,
-a different method to Go et al. \shortcite{go09},
-since they misses emoticons, such as the crying \texttt{:'(}.
+Emoticons are identified as string combinations of eye, middle and mouth characters, 
+using a different method to Go et al. \shortcite{go09},
+since they miss many emoticons, such as the crying \texttt{:'(}.
 Emoticons are then categorized into happy \texttt{:)}, sad \texttt{:(}, neutral \texttt{:|} or surprised \texttt{:o}.
 
 \subsubsection{Metric features}
@@ -109,7 +109,7 @@ Also considered are average word length and if a tweet is quoting another.
 
 \subsubsection{How many features per feature type is enough?}
 
-With over 20000 instances in the training dataset, some feature types generate a numerous unique results.
+With over 20,000 unique instances in the training dataset, many feature types generate a large number of unique features (e.g. a large vocabulary of lemmas).
 Minimizing the feature space with a limit of features per feature type reduces model complexity.
 To determine this number $M_f$, the top candidate classifiers are compared for each of $M_f \in \lbrace 10, 100, 1000, 5000 \rbrace$ by the accuracies found using Section~\ref{sec:choosing2}.
 
@@ -148,21 +148,8 @@ The following classifier/parameter combinations are considered for the final thr
 \end{table}
 
 \textbf{Logistic Regressions}:
-\begin{table}[h]
-	\begin{center}
-		\begin{tabular}{|c|c|}			
-			\hline
-			Parameter & Options \\
-			\hline
-			Fit Intercept & Yes, No \\
-			Maximum Iterations & 100, 500 \\
-			Optimization & \texttt{sag}, \texttt{saga} \\
-			\hline
-		\end{tabular}
-		\caption{Logistic Regression Parameters}
-		\label{tbl:lr-options}
-	\end{center}
-\end{table}
+Logistic regressions do not have values modified.
+For the logistic regressions, \texttt{saga} optimization is used, as it is recommended for larger datasets \cite{skl}.
 
 \textbf{Decision Trees}:
 \begin{table}[h]
@@ -224,10 +211,10 @@ Next, cross-validation is performed on the maximum subset of data with a uniform
 The 10 scores are averaged $\bar{x}$, and their standard deviation $s$ found. 
 The best candidate configurations have the highest bound for the right-sided $95\%$ confidence interval of mean cross-validation scores:
 \begin{align*}
-	\text{95\% C.I. Bound} &= \bar{x} - \mathbb{F}_{t}^{-1}(0.95) \times \frac{s}{\sqrt{n}} \\
+	\text{95\% C.I. Bound} &= \bar{x} - \mathbb{F}_{t_9}^{-1}(0.95) \times \frac{s}{\sqrt{n}} \\
 	&= \bar{x} - 1.8331 \times \frac{s}{\sqrt{10}}
 \end{align*}
-where $t$ is the $t$-distribution with $df = 9$ and $n = 10$.
+where $t_9$ is the $t$-distribution with $9$ degrees of freedom and $n = 10$.
 
 \subsubsection{Evaluation Metrics}\label{sec:evalmetrics}
 
@@ -236,8 +223,11 @@ Accuracies, precisions, recalls and $F_1$ scores (per sentiment) are generated f
 \subsubsection{Which models are label distribution agnostic?}
 
 It is unknown whether the \texttt{Test.csv} and \texttt{Train.csv} sentiments are similarly distributed, 
-so evaluation metrics from Section~\ref{sec:evalmetrics} are calculated for four $4:1$ train/test splits.
-Evaluation metrics are generated on the combinations in Table~\ref{tbl:train-test} of these training and testing splits.
+so evaluation metrics from Section~\ref{sec:evalmetrics} are calculated on four $4:1$ train/test splits.
+
+Where ``Given'' denotes a set of data with sentiment distributions similar to those in Figure~\ref{fig:sent-dist},
+and ``Uniform'' denotes a maximum subset of data with uniformally distributed sentiments,
+evaluation metrics are generated on the train/test combinations in Table~\ref{tbl:train-test}.
 The metrics are then compared to determine which models are agnostic to sentiment distributions.
 
 \begin{table}[H]
@@ -257,9 +247,6 @@ The metrics are then compared to determine which models are agnostic to sentimen
 	\end{center}
 \end{table}
 
-Where ``Given'' denotes a set of data with sentiment distributions similar to those in Figure~\ref{fig:sent-dist},
-and ``Uniform'' denotes a maximum subset of data with uniformally distributed sentiments.
-
 \section{Results}\label{sec:results}
 % Results: Present the results, in terms of evaluation metric(s) and, ideally, illustrative examples and diagrams.
 
@@ -272,16 +259,16 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
 			Classifier & Logistic Regression \\
-			Fit Intercept & No \\
-			Maximum Iterations & 500 \\
-			Optimization & \texttt{sag} \\
+			Parameters & 
+			\begin{tabular}{l} 
+				With Intercepts \& \\
+				500 Max Iterations
+			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.5491\\
-			$s$ &  0.05083 \\
-			95\% C.I. Bound & 0.5196 \\
+			$\bar{x}$ &  0.5524\\
+			$s$ &  0.04734 \\
+			95\% C.I. Bound & 0.5250 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 10$ Top classifier}
@@ -293,16 +280,15 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Logistic Regression \\
-			Fit Intercept & Yes \\
-			Maximum Iterations & 500 \\
-			Optimization & \texttt{sag} \\
+			Classifier & Linear SVC \\
+			Parameters & 
+			\begin{tabular}{l} 
+				$C = 0.1$
+			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.5852\\
-			$s$ &  0.03187 \\
-			95\% C.I. Bound & 0.5667 \\
+			$\bar{x}$ &  0.6027\\
+			$s$ &  0.02625 \\
+			95\% C.I. Bound & 0.5875 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 100$ Top classifier}
@@ -314,15 +300,17 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Bernoulli N.B. \\
-			Include Priors & Yes \\
-			$\alpha$ Smoothing & 5 \\
+			Classifier & Support Vector Classifier \\
+			Parameters & 
+			\begin{tabular}{l} 
+				One-v-One Decisions, \\ 
+				$C = 0.1$ \& \\
+				Linear Kernel
+			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6179\\
-			$s$ &  0.01537 \\
-			95\% C.I. Bound & 0.6090 \\
+			$\bar{x}$ &  0.6415\\
+			$s$ &  0.02002 \\
+			95\% C.I. Bound & 0.6299 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 1000$ Top classifier}
@@ -335,15 +323,16 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Bernoulli N.B. \\
-			Include Priors & Yes \\
-			$\alpha$ Smoothing & 1 \\
+			Classifier & Logistic Regression \\
+			Parameters & 
+			\begin{tabular}{l} 
+				With Intercepts \& \\
+				100 Max Iterations
+			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6372\\
-			$s$ & 0.01438 \\
-			95\% C.I. Bound & 0.6288 \\
+			$\bar{x}$ &  0.6441\\
+			$s$ & 0.008317 \\
+			95\% C.I. Bound & 0.6392 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 5000$ Top classifier}
@@ -355,15 +344,16 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Bernoulli N.B. \\
-			Include Priors & Yes \\
-			$\alpha$ Smoothing & 1 \\
+			Classifier & Logistic Regression \\
+			Parameters & 
+			\begin{tabular}{l} 
+				Wihout Intercepts \& \\
+				100 Max Iterations
+			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6361\\
-			$s$ & 0.01028 \\
-			95\% C.I. Bound & 0.6301 \\
+			$\bar{x}$ &  0.6447\\
+			$s$ & 0.006991 \\
+			95\% C.I. Bound & 0.6406 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 10000$ Top classifier}
@@ -371,8 +361,14 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 	\end{center}
 \end{table}
 
-It appears that $\emph{accuracy} \varpropto M_f$.
-The final classifer models are trained with $M_f = 10000$ to maximize accuracy.
+These results are used to generate Figure~\ref{fig:accvsmf}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.49\textwidth]{how-mf-varies-accuracies.png}
+	\caption{How $M_f$ affects the cross-validation accuracies of the highest-scoring classifiers.}
+	\label{fig:accvsmf}
+\end{figure} 
 
 \subsection{Top 3 parameter/classifier configurations for $M_f = 10000$}\label{sec:top3}
 
@@ -382,15 +378,16 @@ The following classifiers have the highest scores calculated in Section~\ref{sec
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Bernoulli N.B. \\
-			Include Priors & Yes \\
-			$\alpha$ Smoothing & 1 \\
+			Classifier & Logistic Regression \\
+			Parameters & 
+			\begin{tabular}{l} 
+				Wihout Intercepts \& \\
+				100 Max Iterations
+			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6361\\
-			$s$ & 0.01028 \\
-			95\% C.I. Bound & 0.6301 \\
+			$\bar{x}$ &  0.6447\\
+			$s$ & 0.006991 \\
+			95\% C.I. Bound & 0.6406 \\
 			\hline
 		\end{tabular}
 		\caption{Classifier 1}
@@ -402,15 +399,16 @@ The following classifiers have the highest scores calculated in Section~\ref{sec
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Bernoulli N.B. \\
-			Include Priors & No \\
-			$\alpha$ Smoothing & 1 \\
+			Classifier & Logistic Regression \\
+			Parameters & 
+			\begin{tabular}{l} 
+				With Intercepts \& \\
+				100 Max Iterations
+			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6365\\
-			$s$ &   0.01159 \\
-			95\% C.I. Bound & 0.6298 \\
+			$\bar{x}$ &  0.6449\\
+			$s$ & 0.008343 \\
+			95\% C.I. Bound & 0.6401 \\
 			\hline
 		\end{tabular}
 		\caption{Classifier 2}
@@ -422,15 +420,16 @@ The following classifiers have the highest scores calculated in Section~\ref{sec
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Multinomial N.B. \\
-			Include Priors & Yes \\
-			$\alpha$ Smoothing & 1 \\
+			Classifier & Linear SVC \\
+			Parameters & 
+			\begin{tabular}{l} 
+				One-v-One \\ 
+				\& $C = 0.1$
+			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6343\\
-			$s$ &   0.01428 \\
-			95\% C.I. Bound & 0.6260 \\
+			$\bar{x}$ &  0.6491\\
+			$s$ &   0.01622 \\
+			95\% C.I. Bound & 0.6397 \\
 			\hline
 		\end{tabular}
 		\caption{Classifier 3}
@@ -438,150 +437,58 @@ The following classifiers have the highest scores calculated in Section~\ref{sec
 	\end{center}
 \end{table}
 
-\subsection{Evaluation metrics for the final 4 models}
+\subsection{Evaluation metrics for the final 4 models}\label{sec:4metrics}
 
-Generated based on Section~\ref{sec:evalmetrics}. 
+The metrics describes in Section~\ref{sec:evalmetrics} are calculated for the final classifiers (Classifiers 1, 2, 3, and 4). 
 Per-class metrics are shown in order of postive (+), neutral (n), then negative (--) sentiments.
-See Section~\ref{sec:appa} (Appendix).
+% See Section~\ref{sec:appa} (Appendix).
 
-\section{Analysis}
-% Discussion / Critical Analysis: Contextualise the systems' behaviour, based on the understanding of the
-% subject materials (This is the most important part of the task in this assignment).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Contextualise implies that we are more interested in seeing evidence of you have thought about the task
-% and determining reasons for the relative performance of different methods, rather than the raw scores of
-% the different methods you selected. This is not to say that you should ignore the relative performance of
-% different runs over the data, but rather that you should think beyond simple numbers to the reasons that
-% underlie them.
-
-\subsection{How $M_f$ modifies the models}\label{sec:mfanalysis}
-The results from Section~\ref{sec:mfresults} highlight a pattern.
-For lower max feature values $M_f$, the top models are logistic regressions,
-whereas for $M_f \geq 1000$, the best are bernoulli naive Bayes. 
-This suggests that logistic regressions are more versatile with smaller dimensions of features than other classifiers.
-This is likely due to their optimization feature weights.
-A smaller feature space results in fewer possible local minima.
-With fewer local minima, it is likely that the true error rate minimum is found with the feature weights.
-
-
-For $M_f \geq 1000$, the bernoulli naive Bayes models have the highest bound for the right-sided 95\% cross-validation scores with larger feature spaces.
-Most of the classifiers considered rely on solving an optimization problem to determine a support vector, or a set of weights.
-The naive Bayes models do rely on optimization, and are therefore more reliable with large feature spaces.
-
-\subsection{The best classifier/parameter configurations}
-
-The best classifier configurations with a large feature space are naive Bayes estimators, as shown in Section~\ref{sec:top3}.
-The highest scoring model is the bernoulli naive Bayes, with $\alpha = 1$ laplace smoothing and sentiment label priors included.
-
-
-The Classifiers 1, 2, and 3 all perform better than the baseline model. 
-The only exception is in the recalls of the 0-R, which the baseline model has the best results for.
-However, this is misleading since the 0-R baseline classifier labels all instances with the same class, 
-guarranteeing that one of the classes has no false negative values.
-
-
-With the used feature set, bernoulli naive Bayes classifiers are more applicable, since most features only appear in a tweet as binary events.
-This is reflected in the best possible model, while the multinomial model is still high accuracy relative to non-naive Bayes methods (Table~\ref{tbl:3rd10000}).
-
-\pagebreak
-The naive Bayes classifiers yield higher accuracies than the other considered classifiers, since they scale easily with the size of the feature space (see Section~\ref{sec:mfanalysis}).
-To improve the accuracy of optimization-reliant classifiers, I would need to either start with an initial state (of weights or support vectors) that is known to be near the true error maximum, 
-or to train the models multiple times with a large number of iterations.
-Both of these options cannot be achieved with limited time, and with a large feature space as I am using.
-
-
-The top models rely on laplace smoothing with $\alpha = 1$, implying that there is a need to account for potentially missing values.
-However, as the $alpha$ for the smoothing increases further, 
-the features present in the data are undermined in predictions, and the resulting models are less accurate. 
-
-\subsection{The most sentiment distribution agnostic classifier}
-
-Since the \texttt{Test.csv} and \texttt{Train.csv} data are not guarranteed to follow the same sentiment distributions,
-the true best model is selected by comparing $F_1$ scores.
-As shown in Section~\ref{sec:appa}, the sentiment distribution of the training and testing data influences the evaluation metrics of classifiers.
-
-For the top 3 Classifiers Section~\ref{sec:appa}, %(Section~\ref{sec:appc1}, \ref{sec:appc2}, and \ref{sec:appc3}), 
-training on given data and testing on uniform data yields high precisions and low recalls for non-neutral sentiments,
-indicating that they are harder to confirm than neutral ones.
-Thus, training on the data as is not preferrable if the true testing data does not follow the same sentiment distribution.
-The opposite is true for uniform training and given testing sets, which has low precisions, but high recalls for non-neutral sentiments.
-Therefore, the models perform better for non-neutral sentiments trained on a uniform set instead of the full dataset.
-
-Of the top classifiers, 
-the highest $F_1$ scores (accounting for both precision and recall) for a uniform training set come from the bernoulli naive Bayes classifiers. 
-Since both of these models have the same $F_1$ scores per sentiment, the true \emph{best} model is determined otherwise.
-
-The only hyperparameter that differs between Classifier 1 and Classifier 2 is inclusion of class priors.
-To consider how the hyperparameter affects the model, 
-high precision and high recall (or simply the $F_1$ Scores) for non-neutral classes are compared, 
-since neutral sentiment is common in the training set.
-Fitting the prior labels reduces the accuracy when training on the given set and testing on the uniform set.
-This is a small difference of $0.01$ in accuracy, however it confirms that, 
-if the \texttt{Test.csv} dataset has a different sentiment distribution to the \texttt{Train.csv}, it is preferrable not to let prior distributions influence the outcomes.
-
-
-\section{Conclusions}
-% Conclusion: Demonstrate your identified knowledge about the problem.
-Performing sentiment analysis on tweets is a difficult task.
-Vectorization of the features yields a large feature space, which contributes to the time and space complexity in training classifiers.
-While minimizing the feature space reduces complexity, it also sacrifices the accuracy of classifiers (some more than others).
-
-Testing a multitude of different classifier combinations, the highest scoring (calculated by Section~\ref{sec:choosing2}) classifiers are naive Bayes classifiers, 
-with the best model relying specifically on a bernoulli naive Bayes classifier.
-Bernoulli models make sense in this case, given the small sizes of tweets meaning features appear no more than once in an instance \cite{tweetlen}.
-With little information on the \texttt{Test.csv} set, 
-the models generated need to be highly accurate regardless of the distributions of the training sentiments.
-
-\textbf{Of the classifiers considered, the most efficacious, 
-is a bernoulli naive Bayes model trained on the maximum subset of data with uniform sentiment distribution with laplace smoothing $\alpha = 1$, 
-without fitting prior distributions.}
-
-% \pagebreak
-\bibliographystyle{acl}
-\bibliography{citations}
-
-% \pagebreak
-\section{Appendix: Evaluation of top classifiers for $M_f = 10000$}\label{sec:appa}
-
-% \subsection{Results for Classifier 1}\label{sec:appc1}
+% \subsubsection{Results for Classifier 1}\label{sec:appc1}
 
 \begin{table}[H]
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Bernoulli N.B. \\
-			Include Priors & Yes \\
-			$\alpha$ Smoothing & 1 \\
+			Classifier & Logistic Regression \\
+			Parameters & 
+			\begin{tabular}{l} 
+				Without Intercepts \& \\
+				100 Max Iterations
+			\end{tabular} \\
 			\hline\hline
 			Uniform Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.62 \\
-			Precisions (+, n, --)	& 0.65, 0.55, 0.65 \\
-			Recalls (+, n, --) 		& 0.70, 0.44, 0.74 \\
-			$F_1$ Scores (+, n, --) & 0.67, 0.49, 0.69 \\
+			Accuracy & 0.64 \\
+			Precisions (+, n, --)	& 0.69, 0.54, 0.69 \\
+			Recalls (+, n, --) 		& 0.68, 0.55, 0.69 \\
+			$F_1$ Scores (+, n, --) & 0.69, 0.54, 0.69 \\
 			\hline\hline
 			Given Training & Given Testing \\
 			\hline
-			Accuracy & 0.60 \\
-			Precisions (+, n, --) 	& 0.78, 0.60, 0.50 \\
-			Recalls (+, n, --) 		& 0.14, 0.99, 0.00 \\
-			$F_1$ Scores (+, n, --) & 0.23, 0.74, 0.01 \\
+			Accuracy & 0.65 \\
+			Precisions (+, n, --) 	& 0.69, 0.65, 0.53 \\
+			Recalls (+, n, --) 		& 0.40, 0.89, 0.18 \\
+			$F_1$ Scores (+, n, --) & 0.51, 0.75, 0.27 \\
 			\hline\hline
 			Given Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.40 \\
-			Precisions (+, n, --) 	& 0.94, 0.36, 0.90 \\
-			Recalls (+, n, --) 		& 0.19, 0.99, 0.01 \\
-			$F_1$ Scores (+, n, --) & 0.31, 0.52, 0.02 \\
+			Accuracy & 0.54 \\
+			Precisions (+, n, --) 	& 0.81, 0.43, 0.82 \\
+			Recalls (+, n, --) 		& 0.48, 0.91, 0.24 \\
+			$F_1$ Scores (+, n, --) & 0.60, 0.58, 0.37 \\
 			\hline\hline
 			Uniform Training & Given Testing \\
 			\hline
-			Accuracy & 0.64 \\
-			Precisions (+, n, --) 	& 0.56, 0.87, 0.48 \\
-			Recalls (+, n, --) 		& 0.82, 0.50, 0.85 \\
-			$F_1$ Scores (+, n, --) & 0.67, 0.64, 0.62 \\
+			Accuracy & 0.73 \\
+			Precisions (+, n, --) 	& 0.64, 0.91, 0.57 \\
+			Recalls (+, n, --) 		& 0.84, 0.62, 0.93 \\
+			$F_1$ Scores (+, n, --) & 0.73, 0.74, 0.71 \\
 			\hline
 		\end{tabular}
 		\caption{Classifier 1 metrics}
@@ -617,45 +524,47 @@ without fitting prior distributions.}
 % 	\label{fig:cf-1st-ur}
 % \end{figure} 
 
-% \subsection{Results for Classifier 2}\label{sec:appc2}
+% \pagebreak
+% \subsubsection{Results for Classifier 2}\label{sec:appc2}
 
 \begin{table}[H]
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Bernoulli N.B. \\
-			Include Priors & No \\
-			$\alpha$ Smoothing & 1 \\
+			Classifier & Logistic Regression \\
+			Parameters & 
+			\begin{tabular}{l} 
+				With Intercepts \& \\
+				100 Max Iterations
+			\end{tabular} \\
 			\hline\hline
 			Uniform Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.62 \\
-			Precisions (+, n, --) 	& 0.65, 0.55, 0.65 \\
-			Recalls (+, n, --) 		& 0.70, 0.44, 0.74 \\
-			$F_1$ Scores (+, n, --) & 0.67, 0.49, 0.69 \\
+			Accuracy & 0.64 \\
+			Precisions (+, n, --) 	& 0.69, 0.54, 0.69 \\
+			Recalls (+, n, --) 		& 0.68, 0.54, 0.69 \\
+			$F_1$ Scores (+, n, --) & 0.68, 0.54, 0.69 \\
 			\hline\hline
 			Given Training & Given Testing \\
 			\hline
-			Accuracy & 0.61 \\
-			Precisions (+, n, --) 	& 0.73, 0.60, 0.60 \\
-			Recalls (+, n, --) 		& 0.16, 0.98, 0.01 \\
-			$F_1$ Scores (+, n, --) & 0.26, 0.74, 0.02 \\
+			Accuracy & 0.64 \\
+			Precisions (+, n, --) 	& 0.68, 0.65, 0.52 \\
+			Recalls (+, n, --) 		& 0.40, 0.89, 0.17 \\
+			$F_1$ Scores (+, n, --) & 0.50, 0.75, 0.26 \\
 			\hline\hline
 			Given Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.42 \\
-			Precisions (+, n, --) 	& 0.93, 0.36, 0.95 \\
-			Recalls (+, n, --) 		& 0.23, 0.99, 0.03 \\
-			$F_1$ Scores (+, n, --) & 0.37, 0.53, 0.05 \\
+			Accuracy & 0.54 \\
+			Precisions (+, n, --) 	& 0.81, 0.43, 0.82 \\
+			Recalls (+, n, --) 		& 0.48, 0.91, 0.23 \\
+			$F_1$ Scores (+, n, --) & 0.60, 0.58, 0.36 \\
 			\hline\hline
 			Uniform Training & Given Testing \\
 			\hline
-			Accuracy & 0.64 \\
-			Precisions (+, n, --) 	& 0.56, 0.87, 0.48 \\
-			Recalls (+, n, --) 		& 0.82, 0.50, 0.85 \\
-			$F_1$ Scores (+, n, --) & 0.67, 0.64, 0.62 \\
+			Accuracy & 0.73 \\
+			Precisions (+, n, --) 	& 0.64, 0.91, 0.57 \\
+			Recalls (+, n, --) 		& 0.84, 0.62, 0.93 \\
+			$F_1$ Scores (+, n, --) & 0.73, 0.74, 0.71 \\
 			\hline
 		\end{tabular}
 		\caption{Classifer 2 metrics}
@@ -691,45 +600,47 @@ without fitting prior distributions.}
 % 	\label{fig:cf-2nd-ur}
 % \end{figure} 
 
-% \subsection{Results for Classifier 3}\label{sec:appc3}
+% \pagebreak
+% \subsubsection{Results for Classifier 3}\label{sec:appc3}
 
 \begin{table}[H]
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
-			Classifier & Multinomial N.B. \\
-			Include Priors & Yes \\
-			$\alpha$ Smoothing & 1 \\
+			Classifier & Linear SVC \\
+			Parameters & 
+			\begin{tabular}{l} 
+				One-v-One \\ 
+				\& $C = 0.1$
+			\end{tabular} \\
 			\hline\hline
 			Uniform Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.62 \\
-			Precisions (+, n, --) 	& 0.67, 0.55, 0.62 \\
-			Recalls (+, n, --) 		& 0.67, 0.41, 0.78 \\
-			$F_1$ Scores (+, n, --) & 0.67, 0.47, 0.69 \\
+			Accuracy & 0.64 \\
+			Precisions (+, n, --) 	& 0.70, 0.53, 0.68 \\
+			Recalls (+, n, --) 		& 0.67, 0.55, 0.69 \\
+			$F_1$ Scores (+, n, --) & 0.69, 0.54, 0.69 \\
 			\hline\hline
 			Given Training & Given Testing \\
 			\hline
-			Accuracy & 0.61 \\
-			Precisions (+, n, --) 	& 0.79, 0.60, 0.20 \\
-			Recalls (+, n, --) 		& 0.17, 0.98, 0.00 \\
-			$F_1$ Scores (+, n, --) & 0.28, 0.74, 0.01 \\
+			Accuracy & 0.65 \\
+			Precisions (+, n, --) 	& 0.66, 0.66, 0.54 \\
+			Recalls (+, n, --) 		& 0.46, 0.85, 0.26 \\
+			$F_1$ Scores (+, n, --) & 0.54, 0.74, 0.35 \\
 			\hline\hline
 			Given Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.42 \\
-			Precisions (+, n, --) 	& 0.94, 0.36, 1.00 \\
-			Recalls (+, n, --) 		& 0.26, 0.99, 0.02 \\
-			$F_1$ Scores (+, n, --) & 0.41, 0.53, 0.04 \\
+			Accuracy & 0.65 \\
+			Precisions (+, n, --) 	& 0.85, 0.50, 0.92 \\
+			Recalls (+, n, --) 		& 0.61, 0.91, 0.43 \\
+			$F_1$ Scores (+, n, --) & 0.71, 0.65, 0.58 \\
 			\hline\hline
 			Uniform Training & Given Testing \\
 			\hline
-			Accuracy & 0.63 \\
-			Precisions (+, n, --) 	& 0.58, 0.88, 0.45 \\
-			Recalls (+, n, --) 		& 0.79, 0.48, 0.89 \\
-			$F_1$ Scores (+, n, --) & 0.67, 0.62, 0.60 \\
+			Accuracy & 0.72 \\
+			Precisions (+, n, --) 	& 0.66, 0.89, 0.55 \\
+			Recalls (+, n, --) 		& 0.82, 0.62, 0.92 \\
+			$F_1$ Scores (+, n, --) & 0.73, 0.74, 0.69 \\
 			\hline
 		\end{tabular}
 		\caption{Classifer 3 metrics}
@@ -763,16 +674,18 @@ without fitting prior distributions.}
 % 	\includegraphics[width = 0.4\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-UniformTrainingandGivenTesting-confusion-matrix.png}
 % 	\caption{Classifier 3's confusion matrix for uniform training and given testing data}
 % 	\label{fig:cf-3rd-ur}
-% \end{figure} 
+% \end{figure}
 
-% \subsection{Results for the baseline model (Classifier 4)}\label{sec:appc4}
+% \pagebreak
+% \subsubsection{Results for the baseline model (Classifier 4)}\label{sec:appc4}
 
 \begin{table}[H]
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Parameter & Value \\
-			\hline
+			% Parameter & Value \\
+			% \hline
+			% Classifier & 0-R \\
 			Classifier & 0-R \\
 			\hline\hline
 			Uniform Training & Uniform Testing \\
@@ -804,7 +717,7 @@ without fitting prior distributions.}
 			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.29 \\
 			\hline
 		\end{tabular}
-		\caption{Baseline classifier metrics}
+		\caption{Baseline (Classifier 4) metrics}
 		\label{tbl:metrics-base10000}
 	\end{center}
 \end{table}
@@ -836,5 +749,421 @@ without fitting prior distributions.}
 % 	\caption{Baseline classifier's confusion matrix for uniform training and given testing data}
 % 	\label{fig:cf-base-ur}
 % \end{figure} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Analysis}
+% Discussion / Critical Analysis: Contextualise the systems' behaviour, based on the understanding of the
+% subject materials (This is the most important part of the task in this assignment).
+
+% Contextualise implies that we are more interested in seeing evidence of you have thought about the task
+% and determining reasons for the relative performance of different methods, rather than the raw scores of
+% the different methods you selected. This is not to say that you should ignore the relative performance of
+% different runs over the data, but rather that you should think beyond simple numbers to the reasons that
+% underlie them.
+
+\subsection{How $M_f$ modifies the models}\label{sec:mfanalysis}
+
+
+It appears that $\emph{accuracy} \varpropto M_f$.
+The number of maximum features $M_f$ does affect the accuracy of models, as shown in Figure~\ref{fig:accvsmf}.
+As $M_f$ increases, the accuracy of the top model increases as well, albeit asymptotically.
+This confirms that a larger feature space allows for more accurate results to a limit.
+With 10 features per feature type, the odds of running into an instance without any of these is higher. 
+As the feature space increases in size, more features can be considered when classifying a new instance, 
+meaning more instances are likely to contain at least one feature to consider for classification.
+Past $M_f = 5000$, the gains in accuracy become negligible.
+Despite this, the accuracy does increase, 
+leading to the use of $M_f = 10000$ to generate and evalute the final models.
+
+
+The average accuracy for cross-validation scores over the splits with the given sentiment distributions does not follow the same relationship to $M_f$ as the other accuracy scores.
+This could potentially suggest that past $M_f = 1000$, training or testing on the given sentiments is unadvisable.
+
+
+
+The modal top classifier within this test is the logistic regression.
+These results highlight the model's versatility with different sizes of the feature space.
+
+
+One outlier is the linear support vector classifier at $M_f = 1000$. 
+This confirms that selecting the final models required deeper investigation into classifier results than simple cross-validation.
+Such analysis occurs in Sections~\ref{sec:bestparams} and \ref{sec:agnostic}.
+
+\subsection{The best classifier/parameter configurations}\label{sec:bestparams}
+
+% The best classifier configurations with a large feature space are naive Bayes estimators, as shown in Section~\ref{sec:top3}.
+% The highest scoring model is the Bernoulli naive Bayes, with $\alpha = 1$ laplace smoothing and sentiment/class priors included.
+
+Of the classifiers evaluated at $M_f = 10000$, 
+the top three models (shown in Tables~\ref{tbl:1st10000}, \ref{tbl:2nd10000}, and \ref{tbl:3rd10000}) are comprised of two logistic regressions and a linear support vector classifier.
+Interestingly, the Bernoulli naive Bayes classifiers do not appear in the top classifier list.
+The nature of the features and tweet lengths means that almost all the features are binary events (Bernoulli trials),
+making the naive Bayes classifier very applicable \cite{tweetlen}. 
+On the other hand, logistic regressions by nature are also well suited to binary features,
+and have improved performance through the use of optimization algorithms.
+
+
+The Classifiers 1, 2, and 3 all perform better than the baseline model (see Section~\ref{sec:4metrics}). 
+The only exception is in the recalls of the 0-R, in which the baseline model has the best results.
+However, this is misleading since the 0-R baseline classifier labels all instances with the same class, 
+guarranteeing that one of the classes has no false negative values.
+
+
+\subsection{The most sentiment distribution agnostic classifier}\label{sec:agnostic}
+
+Since the \texttt{Test.csv} and \texttt{Train.csv} data are not guarranteed to follow the same sentiment distributions,
+the true best model is selected by comparing $F_1$ scores.
+As shown in Section~\ref{sec:4metrics}, the sentiment distribution of the training and testing data influences the evaluation metrics of classifiers.
+
+
+From the accuracies of the top 3 models on different distribution splits (Tables~\ref{tbl:metrics-1st10000}, \ref{tbl:metrics-2nd10000}, and \ref{tbl:metrics-3rd10000}), 
+training on given data and testing on uniform data yields consistently high precisions and recalls for all sentiments.
+This is the opposite for training on given data distributions, where precisions are higher than recalls for non-neutral sentiments, 
+suggesting that confirming a non-neutral sentiment at the point of classification proves difficult.
+
+
+Thus, training on the data with the given sentiment distribution is not preferrable if the true testing data does not follow the same sentiment distribution.
+In fact, training on uniform data generally yields better accuracy and higher $F_1$ scores, 
+even if the distribution of sentiments in the test set is not uniform.
+Therefore, the best-performing models non-neutral sentiments are trained on the maximum uniform subset instead of the full dataset.
+
+
+The only hyperparameter that differs between Classifier 1 and Classifier 2 is inclusion of intercept terms in the regression.
+The inclusion of intercepts in the regression models can bias the models towards different sentiments.
+To measure this bias, the 
+% To consider how the hyperparameter affects the model, 
+% high precision and high recall (or simply the $F_1$ Scores) for non-neutral classes are compared, 
+% since neutral sentiment is common in the training set.
+% Fitting the prior labels reduces the accuracy when training on the given set and testing on the uniform set.
+% This is a small difference of $0.01$ in accuracy. 
+% However, it confirms that if the \texttt{Test.csv} dataset has a different sentiment distribution to the \texttt{Train.csv}, 
+% it is preferrable to prevent prior distributions from influencing predictions.
+
+
+\section{Conclusions}
+% Conclusion: Demonstrate your identified knowledge about the problem.
+Performing sentiment analysis on tweets is a difficult task.
+Vectorization of the features yields a large feature space, which contributes to the time and space complexity in training classifiers.
+While minimizing the feature space reduces complexity, it also sacrifices the accuracy of classifiers (some more than others).
+
+Testing a multitude of different classifier combinations, the highest scoring (calculated by Section~\ref{sec:choosing2}) classifiers are naive Bayes classifiers, 
+with the best model relying specifically on a Bernoulli naive Bayes classifier.
+Bernoulli models make sense in this case, given the small sizes of tweets meaning features appear no more than once in an instance \cite{tweetlen}.
+With little information on the \texttt{Test.csv} set, 
+the models generated need to be highly accurate regardless of the distributions of the training sentiments.
+
+\textbf{Of the classifiers considered, the most efficacious, 
+is a Bernoulli naive Bayes model trained on the maximum subset of data with uniform sentiment distribution with laplace smoothing $\alpha = 1$, 
+without fitting prior distributions.}
+
+\pagebreak
+\bibliographystyle{acl}
+\bibliography{citations}
+
+% \pagebreak
+% \listoftables
+% \section{Appendix: Evaluation of top classifiers for $M_f = 10000$}\label{sec:appa}
+
+% \subsection{Results for Classifier 1}\label{sec:appc1}
+
+% \begin{table}[h]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Parameter & Value \\
+% 			\hline
+% 			Classifier & Bernoulli N.B. \\
+% 			Include Priors & Yes \\
+% 			$\alpha$ Smoothing & 1 \\
+% 			\hline\hline
+% 			Uniform Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.62 \\
+% 			Precisions (+, n, --)	& 0.65, 0.55, 0.65 \\
+% 			Recalls (+, n, --) 		& 0.70, 0.44, 0.74 \\
+% 			$F_1$ Scores (+, n, --) & 0.67, 0.49, 0.69 \\
+% 			\hline\hline
+% 			Given Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.60 \\
+% 			Precisions (+, n, --) 	& 0.78, 0.60, 0.50 \\
+% 			Recalls (+, n, --) 		& 0.14, 0.99, 0.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.23, 0.74, 0.01 \\
+% 			\hline\hline
+% 			Given Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.40 \\
+% 			Precisions (+, n, --) 	& 0.94, 0.36, 0.90 \\
+% 			Recalls (+, n, --) 		& 0.19, 0.99, 0.01 \\
+% 			$F_1$ Scores (+, n, --) & 0.31, 0.52, 0.02 \\
+% 			\hline\hline
+% 			Uniform Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.64 \\
+% 			Precisions (+, n, --) 	& 0.56, 0.87, 0.48 \\
+% 			Recalls (+, n, --) 		& 0.82, 0.50, 0.85 \\
+% 			$F_1$ Scores (+, n, --) & 0.67, 0.64, 0.62 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifier 1 metrics}
+% 		\label{tbl:metrics-1st10000}
+% 	\end{center}
+% \end{table}
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorTrue-Uniform-confusion-matrix.png}
+% % 	\caption{Classifier 1's confusion matrix for uniform training and uniform testing data}
+% % 	\label{fig:cf-1st-uu}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorTrue-Given-confusion-matrix.png}
+% % 	\caption{Classifier 1's confusion matrix for given training and given testing data}
+% % 	\label{fig:cf-1st-rr}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorTrue-GivenTrainingandUniformTesting-confusion-matrix.png}
+% % 	\caption{Classifier 1's confusion matrix for given training and uniform testing data}
+% % 	\label{fig:cf-1st-ru}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorTrue-UniformTrainingandGivenTesting-confusion-matrix.png}
+% % 	\caption{Classifier 1's confusion matrix for uniform training and given testing data}
+% % 	\label{fig:cf-1st-ur}
+% % \end{figure} 
+
+% \pagebreak
+% \subsection{Results for Classifier 2}\label{sec:appc2}
+
+% \begin{table}[h]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Parameter & Value \\
+% 			\hline
+% 			Classifier & Bernoulli N.B. \\
+% 			Include Priors & No \\
+% 			$\alpha$ Smoothing & 1 \\
+% 			\hline\hline
+% 			Uniform Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.62 \\
+% 			Precisions (+, n, --) 	& 0.65, 0.55, 0.65 \\
+% 			Recalls (+, n, --) 		& 0.70, 0.44, 0.74 \\
+% 			$F_1$ Scores (+, n, --) & 0.67, 0.49, 0.69 \\
+% 			\hline\hline
+% 			Given Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.61 \\
+% 			Precisions (+, n, --) 	& 0.73, 0.60, 0.60 \\
+% 			Recalls (+, n, --) 		& 0.16, 0.98, 0.01 \\
+% 			$F_1$ Scores (+, n, --) & 0.26, 0.74, 0.02 \\
+% 			\hline\hline
+% 			Given Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.42 \\
+% 			Precisions (+, n, --) 	& 0.93, 0.36, 0.95 \\
+% 			Recalls (+, n, --) 		& 0.23, 0.99, 0.03 \\
+% 			$F_1$ Scores (+, n, --) & 0.37, 0.53, 0.05 \\
+% 			\hline\hline
+% 			Uniform Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.64 \\
+% 			Precisions (+, n, --) 	& 0.56, 0.87, 0.48 \\
+% 			Recalls (+, n, --) 		& 0.82, 0.50, 0.85 \\
+% 			$F_1$ Scores (+, n, --) & 0.67, 0.64, 0.62 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifer 2 metrics}
+% 		\label{tbl:metrics-2nd10000}
+% 	\end{center}
+% \end{table}
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorFalse-Uniform-confusion-matrix.png}
+% % 	\caption{Classifier 2's confusion matrix for uniform training and uniform testing data}
+% % 	\label{fig:cf-2nd-uu}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorFalse-Given-confusion-matrix.png}
+% % 	\caption{Classifier 2's confusion matrix for given training and given testing data}
+% % 	\label{fig:cf-2nd-rr}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorFalse-GivenTrainingandUniformTesting-confusion-matrix.png}
+% % 	\caption{Classifier 2's confusion matrix for given training and uniform testing data}
+% % 	\label{fig:cf-2nd-ru}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/BernoulliNaiveBayesalpha1fit_priorFalse-UniformTrainingandGivenTesting-confusion-matrix.png}
+% % 	\caption{Classifier 2's confusion matrix for uniform training and given testing data}
+% % 	\label{fig:cf-2nd-ur}
+% % \end{figure} 
+
+% \pagebreak
+% \subsection{Results for Classifier 3}\label{sec:appc3}
+
+% \begin{table}[h]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Parameter & Value \\
+% 			\hline
+% 			Classifier & Multinomial N.B. \\
+% 			Include Priors & Yes \\
+% 			$\alpha$ Smoothing & 1 \\
+% 			\hline\hline
+% 			Uniform Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.62 \\
+% 			Precisions (+, n, --) 	& 0.67, 0.55, 0.62 \\
+% 			Recalls (+, n, --) 		& 0.67, 0.41, 0.78 \\
+% 			$F_1$ Scores (+, n, --) & 0.67, 0.47, 0.69 \\
+% 			\hline\hline
+% 			Given Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.61 \\
+% 			Precisions (+, n, --) 	& 0.79, 0.60, 0.20 \\
+% 			Recalls (+, n, --) 		& 0.17, 0.98, 0.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.28, 0.74, 0.01 \\
+% 			\hline\hline
+% 			Given Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.42 \\
+% 			Precisions (+, n, --) 	& 0.94, 0.36, 1.00 \\
+% 			Recalls (+, n, --) 		& 0.26, 0.99, 0.02 \\
+% 			$F_1$ Scores (+, n, --) & 0.41, 0.53, 0.04 \\
+% 			\hline\hline
+% 			Uniform Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.63 \\
+% 			Precisions (+, n, --) 	& 0.58, 0.88, 0.45 \\
+% 			Recalls (+, n, --) 		& 0.79, 0.48, 0.89 \\
+% 			$F_1$ Scores (+, n, --) & 0.67, 0.62, 0.60 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifer 3 metrics}
+% 		\label{tbl:metrics-3rd10000}
+% 	\end{center}
+% \end{table}
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-Uniform-confusion-matrix.png}
+% % 	\caption{Classifier 3's confusion matrix for uniform training and uniform testing data}
+% % 	\label{fig:cf-3rd-uu}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-Given-confusion-matrix.png}
+% % 	\caption{Classifier 3's confusion matrix for given training and given testing data}
+% % 	\label{fig:cf-3rd-rr}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-GivenTrainingandUniformTesting-confusion-matrix.png}
+% % 	\caption{Classifier 3's confusion matrix for given training and uniform testing data}
+% % 	\label{fig:cf-3rd-ru}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/MultinomialNaiveBayesalpha1fit_priorTrue-UniformTrainingandGivenTesting-confusion-matrix.png}
+% % 	\caption{Classifier 3's confusion matrix for uniform training and given testing data}
+% % 	\label{fig:cf-3rd-ur}
+% % \end{figure}
+
+% \pagebreak
+% \subsection{Results for the baseline model (Classifier 4)}\label{sec:appc4}
+
+% \begin{table}[h]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Parameter & Value \\
+% 			\hline
+% 			Classifier & 0-R \\
+% 			\hline\hline
+% 			Uniform Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.33 \\
+% 			Precisions (+, n, --) 	& 0.00, 0.00, 0.33 \\
+% 			Recalls (+, n, --) 		& 0.00, 0.00, 1.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.50 \\
+% 			\hline\hline
+% 			Given Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.58 \\
+% 			Precisions (+, n, --) 	& 0.00, 0.58, 0.00 \\
+% 			Recalls (+, n, --) 		& 0.00, 1.00, 0.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.00, 0.73, 0.00 \\
+% 			\hline\hline
+% 			Given Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.33 \\
+% 			Precisions (+, n, --) 	& 0.00, 0.33, 0.00 \\
+% 			Recalls (+, n, --) 		& 0.00, 1.00, 0.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.00, 0.50, 0.00 \\
+% 			\hline\hline
+% 			Uniform Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.17 \\
+% 			Precisions (+, n, --) 	& 0.00, 0.00, 0.17 \\
+% 			Recalls (+, n, --) 		& 0.00, 0.00, 1.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.29 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Baseline classifier (Classifier 4) metrics}
+% 		\label{tbl:metrics-base10000}
+% 	\end{center}
+% \end{table}
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/MostFrequentClass0R-Uniform-confusion-matrix.png}
+% % 	\caption{Baseline classifier's confusion matrix for uniform training and uniform testing data}
+% % 	\label{fig:cf-base-uu}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/MostFrequentClass0R-Given-confusion-matrix.png}
+% % 	\caption{Baseline classifier's confusion matrix for given training and given testing data}
+% % 	\label{fig:cf-base-rr}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/MostFrequentClass0R-GivenTrainingandUniformTesting-confusion-matrix.png}
+% % 	\caption{Baseline classifier's confusion matrix for given training and uniform testing data}
+% % 	\label{fig:cf-base-ru}
+% % \end{figure} 
+
+% % \begin{figure}[H]
+% % 	\centering
+% % 	\includegraphics[width = 0.4\textwidth]{cf/MostFrequentClass0R-UniformTrainingandGivenTesting-confusion-matrix.png}
+% % 	\caption{Baseline classifier's confusion matrix for uniform training and given testing data}
+% % 	\label{fig:cf-base-ur}
+% % \end{figure} 
 
 \end{document}

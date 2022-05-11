@@ -1,0 +1,174 @@
+LogisticRegression(fit_intercept=False, solver='saga')
+=== Over Uniform Data ===
+              precision    recall  f1-score   support
+
+    negative       0.69      0.69      0.69       743
+     neutral       0.54      0.55      0.54       743
+    positive       0.69      0.68      0.69       743
+
+    accuracy                           0.64      2229
+   macro avg       0.64      0.64      0.64      2229
+weighted avg       0.64      0.64      0.64      2229
+
+=== Over Given Data ===
+              precision    recall  f1-score   support
+
+    negative       0.53      0.18      0.27       378
+     neutral       0.65      0.89      0.75      1290
+    positive       0.69      0.40      0.51       561
+
+    accuracy                           0.65      2229
+   macro avg       0.62      0.49      0.51      2229
+weighted avg       0.64      0.65      0.61      2229
+
+=== Over Given Training
+ and Uniform Testing Data ===
+              precision    recall  f1-score   support
+
+    negative       0.82      0.24      0.37       743
+     neutral       0.43      0.91      0.58       743
+    positive       0.81      0.48      0.60       743
+
+    accuracy                           0.54      2229
+   macro avg       0.69      0.54      0.52      2229
+weighted avg       0.69      0.54      0.52      2229
+
+=== Over Uniform Training
+ and Given Testing Data ===
+              precision    recall  f1-score   support
+
+    negative       0.57      0.93      0.71       378
+     neutral       0.91      0.62      0.74      1290
+    positive       0.64      0.84      0.73       561
+
+    accuracy                           0.73      2229
+   macro avg       0.71      0.80      0.72      2229
+weighted avg       0.79      0.73      0.73      2229
+
+=== Over All Data ===
+              precision    recall  f1-score   support
+
+    negative       0.72      0.34      0.47      3715
+     neutral       0.71      0.91      0.79     12659
+    positive       0.75      0.52      0.62      5428
+
+    accuracy                           0.71     21802
+   macro avg       0.73      0.59      0.62     21802
+weighted avg       0.72      0.71      0.69     21802
+
+LogisticRegression(solver='saga')
+=== Over Uniform Data ===
+              precision    recall  f1-score   support
+
+    negative       0.69      0.69      0.69       743
+     neutral       0.54      0.54      0.54       743
+    positive       0.69      0.68      0.68       743
+
+    accuracy                           0.64      2229
+   macro avg       0.64      0.64      0.64      2229
+weighted avg       0.64      0.64      0.64      2229
+
+=== Over Given Data ===
+              precision    recall  f1-score   support
+
+    negative       0.52      0.17      0.26       378
+     neutral       0.65      0.89      0.75      1290
+    positive       0.68      0.40      0.50       561
+
+    accuracy                           0.64      2229
+   macro avg       0.62      0.49      0.50      2229
+weighted avg       0.63      0.64      0.60      2229
+
+=== Over Given Training
+ and Uniform Testing Data ===
+              precision    recall  f1-score   support
+
+    negative       0.82      0.23      0.36       743
+     neutral       0.43      0.91      0.58       743
+    positive       0.81      0.48      0.60       743
+
+    accuracy                           0.54      2229
+   macro avg       0.69      0.54      0.51      2229
+weighted avg       0.69      0.54      0.51      2229
+
+=== Over Uniform Training
+ and Given Testing Data ===
+              precision    recall  f1-score   support
+
+    negative       0.57      0.93      0.71       378
+     neutral       0.91      0.62      0.74      1290
+    positive       0.64      0.84      0.73       561
+
+    accuracy                           0.73      2229
+   macro avg       0.71      0.80      0.72      2229
+weighted avg       0.79      0.73      0.73      2229
+
+=== Over All Data ===
+              precision    recall  f1-score   support
+
+    negative       0.73      0.34      0.46      3715
+     neutral       0.70      0.91      0.79     12659
+    positive       0.75      0.52      0.61      5428
+
+    accuracy                           0.72     21802
+   macro avg       0.73      0.59      0.62     21802
+weighted avg       0.72      0.72      0.69     21802
+
+SVC(C=0.1, decision_function_shape='ovo', kernel='linear')
+=== Over Uniform Data ===
+              precision    recall  f1-score   support
+
+    negative       0.68      0.69      0.69       743
+     neutral       0.53      0.55      0.54       743
+    positive       0.70      0.67      0.69       743
+
+    accuracy                           0.64      2229
+   macro avg       0.64      0.64      0.64      2229
+weighted avg       0.64      0.64      0.64      2229
+
+=== Over Given Data ===
+              precision    recall  f1-score   support
+
+    negative       0.54      0.26      0.35       378
+     neutral       0.66      0.85      0.74      1290
+    positive       0.66      0.46      0.54       561
+
+    accuracy                           0.65      2229
+   macro avg       0.62      0.52      0.55      2229
+weighted avg       0.64      0.65      0.63      2229
+
+=== Over Given Training
+ and Uniform Testing Data ===
+              precision    recall  f1-score   support
+
+    negative       0.92      0.43      0.58       743
+     neutral       0.50      0.91      0.65       743
+    positive       0.85      0.61      0.71       743
+
+    accuracy                           0.65      2229
+   macro avg       0.76      0.65      0.65      2229
+weighted avg       0.76      0.65      0.65      2229
+
+=== Over Uniform Training
+ and Given Testing Data ===
+              precision    recall  f1-score   support
+
+    negative       0.55      0.92      0.69       378
+     neutral       0.89      0.62      0.74      1290
+    positive       0.66      0.82      0.73       561
+
+    accuracy                           0.72      2229
+   macro avg       0.70      0.79      0.72      2229
+weighted avg       0.78      0.72      0.73      2229
+
+=== Over All Data ===
+              precision    recall  f1-score   support
+
+    negative       0.92      0.61      0.73      3715
+     neutral       0.80      0.96      0.87     12659
+    positive       0.89      0.70      0.78      5428
+
+    accuracy                           0.83     21802
+   macro avg       0.87      0.75      0.79     21802
+weighted avg       0.84      0.83      0.83     21802
+
