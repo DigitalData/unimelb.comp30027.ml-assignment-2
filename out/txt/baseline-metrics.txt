@@ -1,0 +1,68 @@
+Most Frequent Class (0-R)
+{'classifier': DummyClassifier(strategy='most_frequent'),
+ 'cv-scores': {'test-scores': [0.5538743695552499,
+                               0.6685006877579092,
+                               0.7349839523154517,
+                               0.5469967904630904,
+                               0.5479138010087116,
+                               0.5428702430077946,
+                               0.5414947271893626,
+                               0.547455295735901,
+                               0.5570839064649243,
+                               0.5644199908298946],
+               'train-scores': [0.583609398093879,
+                                0.5708679476071556,
+                                0.5634779063248561,
+                                0.5843738851230824,
+                                0.5842719535191886,
+                                0.5848325773406045,
+                                0.5849854747464451,
+                                0.5843229193211356,
+                                0.5832526374802508,
+                                0.5824371846491004]}}
+=== Over Uniform Data ===
+              precision    recall  f1-score   support
+
+    negative       0.33      1.00      0.50       743
+     neutral       0.00      0.00      0.00       743
+    positive       0.00      0.00      0.00       743
+
+    accuracy                           0.33      2229
+   macro avg       0.11      0.33      0.17      2229
+weighted avg       0.11      0.33      0.17      2229
+
+=== Over Given Data ===
+              precision    recall  f1-score   support
+
+    negative       0.00      0.00      0.00       378
+     neutral       0.58      1.00      0.73      1290
+    positive       0.00      0.00      0.00       561
+
+    accuracy                           0.58      2229
+   macro avg       0.19      0.33      0.24      2229
+weighted avg       0.33      0.58      0.42      2229
+
+=== Over Given Training
+ and Uniform Testing Data ===
+              precision    recall  f1-score   support
+
+    negative       0.00      0.00      0.00       743
+     neutral       0.33      1.00      0.50       743
+    positive       0.00      0.00      0.00       743
+
+    accuracy                           0.33      2229
+   macro avg       0.11      0.33      0.17      2229
+weighted avg       0.11      0.33      0.17      2229
+
+=== Over Uniform Training
+ and Given Testing Data ===
+              precision    recall  f1-score   support
+
+    negative       0.17      1.00      0.29       378
+     neutral       0.00      0.00      0.00      1290
+    positive       0.00      0.00      0.00       561
+
+    accuracy                           0.17      2229
+   macro avg       0.06      0.33      0.10      2229
+weighted avg       0.03      0.17      0.05      2229
+

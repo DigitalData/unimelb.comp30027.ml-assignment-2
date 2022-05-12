@@ -61,7 +61,7 @@ Also performed is the reduction of repeated letters with more than two occurrenc
 
 \subsubsection{Stopwords}\label{sec:stopwords}
 
-Manual stopword list construction is tedious and inexhaustive (consider other languages). 
+Manual stopword list construction omits stopwords from other languages. 
 Instead, I start with the {P}ython Natural Language Toolkit's (\texttt{NLTK}) stopword list, which includes non-English languages \cite{nltk}.
 
 \begin{figure}[H]
@@ -71,7 +71,8 @@ Instead, I start with the {P}ython Natural Language Toolkit's (\texttt{NLTK}) st
 	\label{fig:wc-nltk}
 \end{figure}
 
-Next, based on Figure~\ref{fig:wc-nltk}, some extra words are manually added to the list, leading to the final vocabulary list in Figure~\ref{fig:wc-final}.
+Next, referring to Figure~\ref{fig:wc-nltk}, some extra words are manually added to the final stopword list, 
+leading to the final training vocabulary in Figure~\ref{fig:wc-final}.
 
 \begin{figure}[H]
 	\centering
@@ -93,7 +94,7 @@ These are integrated within the platform, meaning they are widely used (commonpl
 \subsubsection{Linguistic features}
 
 Next, linguistic features are extracted and used to tokenize the tweet in different ways: 
-part-of-speech tags, lemmas, lemma 2-grams, phonetics (phenomes of words), punctuation, and emoticons \cite{robustnoisy10,nltk,cmudict}.
+part-of-speech tags, lemmas, lemma 2-grams, phonetics (phonemes of words), punctuation, and emoticons \cite{robustnoisy10,nltk,cmudict}.
 Lemmas are preferred over words, as they group words of the same root \cite{nltk}.
 
 
@@ -102,18 +103,19 @@ using a different method to Go et al. \shortcite{go09},
 since they miss many emoticons, such as the crying \texttt{:'(}.
 Emoticons are then categorized into happy \texttt{:)}, sad \texttt{:(}, neutral \texttt{:|} or surprised \texttt{:o}.
 
-\subsubsection{Metric features}
+\subsubsection{Binary features}
 
-These are numeric counts of feature types within a tweet: words, characters, alphabetic characters, links, hashtags, mentions, and emoticons.
-Also considered are average word length and if a tweet is quoting another.
+Binary features track the appearance of other feature types within a tweet: 
+whether the tweet contains quotes, a hashtag, mention, link, or emoticons.
+These binary values may correlate to non-neutral sentiments.
 
 \subsubsection{How many features per feature type is enough?}
 
 With over 20,000 unique instances in the training dataset, many feature types generate a large number of unique features (e.g. a large vocabulary of lemmas).
 Minimizing the feature space with a limit of features per feature type reduces model complexity.
-To determine this number $M_f$, the top candidate classifiers are compared for each of $M_f \in \lbrace 10, 100, 1000, 5000 \rbrace$ by the accuracies found using Section~\ref{sec:choosing2}.
+To determine this number $M_f$, the top candidate classifiers are compared for each of $M_f \in \lbrace 10, 100, 1000, 5000, 10000\rbrace$ by the accuracies found using Section~\ref{sec:choosing2}.
 
-\subsubsection{Vectorization}
+\subsubsection{Vectorization}\label{sec:vectorization}
 
 At the time that the data was collected, tweets were limited to 140 characters \cite{tweetlen}.
 This means that features appear once (at most twice) in a tweet.
@@ -148,7 +150,7 @@ The following classifier/parameter combinations are considered for the final thr
 \end{table}
 
 \textbf{Logistic Regressions}:
-Logistic regressions do not have values modified.
+Logistic regressions do not have parameters modified.
 For the logistic regressions, \texttt{saga} optimization is used, as it is recommended for larger datasets \cite{skl}.
 
 \textbf{Decision Trees}:
@@ -182,19 +184,18 @@ For the logistic regressions, \texttt{saga} optimization is used, as it is recom
 	\end{center}
 \end{table}
 
-\textbf{Support Vector Classifiers}:
+\pagebreak
+\textbf{Linear Support Vector Classifiers}:
 \begin{table}[H]
 	\begin{center}
 		\begin{tabular}{|c|c|}			
 			\hline
 			Parameter & Options \\
 			\hline
-			Kernel & Linear, Cubic \\
 			Regularization $C$ & 0.1, 1, 3 \\
-			Decision Function & One-v-One, One-v-Rest \\
 			\hline
 		\end{tabular}
-		\caption{Support Vector Classifier Parameters}
+		\caption{Linear Support Vector Classifier Parameters}
 		\label{tbl:svc-options}
 	\end{center}
 \end{table}
@@ -206,10 +207,10 @@ For the logistic regressions, \texttt{saga} optimization is used, as it is recom
 
 Of the combinations in Section~\ref{sec:allcandidates}, 
 the top three (Classifiers 1, 2, and 3) are determined with the following scoring system.
-First, cross-validation scores are calculated on the training set.
-Next, cross-validation is performed on the maximum subset of data with a uniform sentiment distribution.
+Cross-validation scores are calculated on the training set with 10 folds.
+10 folds allow for a random assortment of large subsets to be scored .
 The 10 scores are averaged $\bar{x}$, and their standard deviation $s$ found. 
-The best candidate configurations have the highest bound for the right-sided $95\%$ confidence interval of mean cross-validation scores:
+The best candidate configurations have the highest bound for the right-sided $95\%$ confidence interval of mean cross-validation scores (5th percentile accuracy):
 \begin{align*}
 	\text{95\% C.I. Bound} &= \bar{x} - \mathbb{F}_{t_9}^{-1}(0.95) \times \frac{s}{\sqrt{n}} \\
 	&= \bar{x} - 1.8331 \times \frac{s}{\sqrt{10}}
@@ -226,7 +227,7 @@ It is unknown whether the \texttt{Test.csv} and \texttt{Train.csv} sentiments ar
 so evaluation metrics from Section~\ref{sec:evalmetrics} are calculated on four $4:1$ train/test splits.
 
 Where ``Given'' denotes a set of data with sentiment distributions similar to those in Figure~\ref{fig:sent-dist},
-and ``Uniform'' denotes a maximum subset of data with uniformally distributed sentiments,
+and ``Uniform'' denotes a maximum subset of data with uniformly distributed sentiments,
 evaluation metrics are generated on the train/test combinations in Table~\ref{tbl:train-test}.
 The metrics are then compared to determine which models are agnostic to sentiment distributions.
 
@@ -260,15 +261,10 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 		\begin{tabular}{|l|l|}			
 			\hline
 			Classifier & Logistic Regression \\
-			Parameters & 
-			\begin{tabular}{l} 
-				With Intercepts \& \\
-				500 Max Iterations
-			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.5524\\
-			$s$ &  0.04734 \\
-			95\% C.I. Bound & 0.5250 \\
+			$\bar{x}$ &  0.6009\\
+			$s$ &  0.03539 \\
+			95\% C.I. Bound & 0.5804 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 10$ Top classifier}
@@ -280,15 +276,11 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Classifier & Linear SVC \\
-			Parameters & 
-			\begin{tabular}{l} 
-				$C = 0.1$
-			\end{tabular} \\
+			Classifier & Logistic Regression \\
 			\hline\hline
-			$\bar{x}$ &  0.6027\\
-			$s$ &  0.02625 \\
-			95\% C.I. Bound & 0.5875 \\
+			$\bar{x}$ &  0.6334\\
+			$s$ &  0.01925 \\
+			95\% C.I. Bound & 0.6222 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 100$ Top classifier}
@@ -300,17 +292,11 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Classifier & Support Vector Classifier \\
-			Parameters & 
-			\begin{tabular}{l} 
-				One-v-One Decisions, \\ 
-				$C = 0.1$ \& \\
-				Linear Kernel
-			\end{tabular} \\
+			Classifier & Logistic Regression \\
 			\hline\hline
-			$\bar{x}$ &  0.6415\\
-			$s$ &  0.02002 \\
-			95\% C.I. Bound & 0.6299 \\
+			$\bar{x}$ &  0.6599\\
+			$s$ &  0.008548 \\
+			95\% C.I. Bound & 0.6549 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 1000$ Top classifier}
@@ -324,15 +310,10 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 		\begin{tabular}{|l|l|}			
 			\hline
 			Classifier & Logistic Regression \\
-			Parameters & 
-			\begin{tabular}{l} 
-				With Intercepts \& \\
-				100 Max Iterations
-			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6441\\
-			$s$ & 0.008317 \\
-			95\% C.I. Bound & 0.6392 \\
+			$\bar{x}$ &  0.6662\\
+			$s$ & 0.006952 \\
+			95\% C.I. Bound & 0.6621 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 5000$ Top classifier}
@@ -345,15 +326,10 @@ the following boasted the highest scores calculated in Section~\ref{sec:choosing
 		\begin{tabular}{|l|l|}			
 			\hline
 			Classifier & Logistic Regression \\
-			Parameters & 
-			\begin{tabular}{l} 
-				Wihout Intercepts \& \\
-				100 Max Iterations
-			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6447\\
-			$s$ & 0.006991 \\
-			95\% C.I. Bound & 0.6406 \\
+			$\bar{x}$ &  0.6676\\
+			$s$ & 0.006673 \\
+			95\% C.I. Bound & 0.6637 \\
 			\hline
 		\end{tabular}
 		\caption{$M_f = 10000$ Top classifier}
@@ -379,15 +355,10 @@ The following classifiers have the highest scores calculated in Section~\ref{sec
 		\begin{tabular}{|l|l|}			
 			\hline
 			Classifier & Logistic Regression \\
-			Parameters & 
-			\begin{tabular}{l} 
-				Wihout Intercepts \& \\
-				100 Max Iterations
-			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6447\\
-			$s$ & 0.006991 \\
-			95\% C.I. Bound & 0.6406 \\
+			$\bar{x}$ &  0.6676\\
+			$s$ & 0.006673 \\
+			95\% C.I. Bound & 0.6637 \\
 			\hline
 		\end{tabular}
 		\caption{Classifier 1}
@@ -399,16 +370,15 @@ The following classifiers have the highest scores calculated in Section~\ref{sec
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Classifier & Logistic Regression \\
+			Classifier & Linear SVC \\
 			Parameters & 
 			\begin{tabular}{l} 
-				With Intercepts \& \\
-				100 Max Iterations
+				$C = 0.1$
 			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6449\\
-			$s$ & 0.008343 \\
-			95\% C.I. Bound & 0.6401 \\
+			$\bar{x}$ &  0.6615\\
+			$s$ & 0.005878 \\
+			95\% C.I. Bound & 0.6581 \\
 			\hline
 		\end{tabular}
 		\caption{Classifier 2}
@@ -420,16 +390,16 @@ The following classifiers have the highest scores calculated in Section~\ref{sec
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Classifier & Linear SVC \\
+			Classifier & Multinomial Naive Bayes \\
 			Parameters & 
 			\begin{tabular}{l} 
-				One-v-One \\ 
-				\& $C = 0.1$
+				Without Priors \\ 
+				\& $\alpha = 1$
 			\end{tabular} \\
 			\hline\hline
-			$\bar{x}$ &  0.6491\\
-			$s$ &   0.01622 \\
-			95\% C.I. Bound & 0.6397 \\
+			$\bar{x}$ &  0.6434\\
+			$s$ &   0.006020 \\
+			95\% C.I. Bound & 0.6399 \\
 			\hline
 		\end{tabular}
 		\caption{Classifier 3}
@@ -456,39 +426,34 @@ Per-class metrics are shown in order of postive (+), neutral (n), then negative 
 		\begin{tabular}{|l|l|}			
 			\hline
 			Classifier & Logistic Regression \\
-			Parameters & 
-			\begin{tabular}{l} 
-				Without Intercepts \& \\
-				100 Max Iterations
-			\end{tabular} \\
 			\hline\hline
 			Uniform Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.64 \\
-			Precisions (+, n, --)	& 0.69, 0.54, 0.69 \\
-			Recalls (+, n, --) 		& 0.68, 0.55, 0.69 \\
-			$F_1$ Scores (+, n, --) & 0.69, 0.54, 0.69 \\
+			Accuracy & 0.63 \\
+			Precisions (+, n, --)	& 0.68, 0.53, 0.68 \\
+			Recalls (+, n, --) 		& 0.66, 0.54, 0.69 \\
+			$F_1$ Scores (+, n, --) & 0.67, 0.54, 0.69 \\
 			\hline\hline
 			Given Training & Given Testing \\
 			\hline
-			Accuracy & 0.65 \\
-			Precisions (+, n, --) 	& 0.69, 0.65, 0.53 \\
-			Recalls (+, n, --) 		& 0.40, 0.89, 0.18 \\
-			$F_1$ Scores (+, n, --) & 0.51, 0.75, 0.27 \\
+			Accuracy & 0.66 \\
+			Precisions (+, n, --) 	& 0.64, 0.67, 0.56 \\
+			Recalls (+, n, --) 		& 0.49, 0.84, 0.29 \\
+			$F_1$ Scores (+, n, --) & 0.55, 0.74, 0.38 \\
 			\hline\hline
 			Given Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.54 \\
-			Precisions (+, n, --) 	& 0.81, 0.43, 0.82 \\
-			Recalls (+, n, --) 		& 0.48, 0.91, 0.24 \\
-			$F_1$ Scores (+, n, --) & 0.60, 0.58, 0.37 \\
+			Accuracy & 0.65 \\
+			Precisions (+, n, --) 	& 0.84, 0.50, 0.88 \\
+			Recalls (+, n, --) 		& 0.60, 0.90, 0.44 \\
+			$F_1$ Scores (+, n, --) & 0.70, 0.65, 0.59 \\
 			\hline\hline
 			Uniform Training & Given Testing \\
 			\hline
-			Accuracy & 0.73 \\
-			Precisions (+, n, --) 	& 0.64, 0.91, 0.57 \\
-			Recalls (+, n, --) 		& 0.84, 0.62, 0.93 \\
-			$F_1$ Scores (+, n, --) & 0.73, 0.74, 0.71 \\
+			Accuracy & 0.75 \\
+			Precisions (+, n, --) 	& 0.66, 0.92, 0.60 \\
+			Recalls (+, n, --) 		& 0.85, 0.64, 0.96 \\
+			$F_1$ Scores (+, n, --) & 0.74, 0.76, 0.74 \\
 			\hline
 		\end{tabular}
 		\caption{Classifier 1 metrics}
@@ -531,40 +496,39 @@ Per-class metrics are shown in order of postive (+), neutral (n), then negative 
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Classifier & Logistic Regression \\
+			Classifier & Linear SVC \\
 			Parameters & 
 			\begin{tabular}{l} 
-				With Intercepts \& \\
-				100 Max Iterations
+				$C = 0.1$
 			\end{tabular} \\
 			\hline\hline
 			Uniform Training & Uniform Testing \\
 			\hline
 			Accuracy & 0.64 \\
-			Precisions (+, n, --) 	& 0.69, 0.54, 0.69 \\
-			Recalls (+, n, --) 		& 0.68, 0.54, 0.69 \\
-			$F_1$ Scores (+, n, --) & 0.68, 0.54, 0.69 \\
+			Precisions (+, n, --) 	& 0.67, 0.54, 0.68 \\
+			Recalls (+, n, --) 		& 0.68, 0.52, 0.71 \\
+			$F_1$ Scores (+, n, --) & 0.68, 0.53, 0.70 \\
 			\hline\hline
 			Given Training & Given Testing \\
 			\hline
-			Accuracy & 0.64 \\
-			Precisions (+, n, --) 	& 0.68, 0.65, 0.52 \\
-			Recalls (+, n, --) 		& 0.40, 0.89, 0.17 \\
-			$F_1$ Scores (+, n, --) & 0.50, 0.75, 0.26 \\
+			Accuracy & 0.65 \\
+			Precisions (+, n, --) 	& 0.60, 0.68, 0.56 \\
+			Recalls (+, n, --) 		& 0.52, 0.80, 0.31 \\
+			$F_1$ Scores (+, n, --) & 0.56, 0.73, 0.40 \\
 			\hline\hline
 			Given Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.54 \\
-			Precisions (+, n, --) 	& 0.81, 0.43, 0.82 \\
-			Recalls (+, n, --) 		& 0.48, 0.91, 0.23 \\
-			$F_1$ Scores (+, n, --) & 0.60, 0.58, 0.36 \\
+			Accuracy & 0.73 \\
+			Precisions (+, n, --) 	& 0.85, 0.58, 0.92 \\
+			Recalls (+, n, --) 		& 0.71, 0.89, 0.58 \\
+			$F_1$ Scores (+, n, --) & 0.77, 0.70, 0.72 \\
 			\hline\hline
 			Uniform Training & Given Testing \\
 			\hline
-			Accuracy & 0.73 \\
-			Precisions (+, n, --) 	& 0.64, 0.91, 0.57 \\
-			Recalls (+, n, --) 		& 0.84, 0.62, 0.93 \\
-			$F_1$ Scores (+, n, --) & 0.73, 0.74, 0.71 \\
+			Accuracy & 0.74 \\
+			Precisions (+, n, --) 	& 0.65, 0.92, 0.59 \\
+			Recalls (+, n, --) 		& 0.86, 0.63, 0.96 \\
+			$F_1$ Scores (+, n, --) & 0.74, 0.75, 0.73 \\
 			\hline
 		\end{tabular}
 		\caption{Classifer 2 metrics}
@@ -607,40 +571,40 @@ Per-class metrics are shown in order of postive (+), neutral (n), then negative 
 	\begin{center}
 		\begin{tabular}{|l|l|}			
 			\hline
-			Classifier & Linear SVC \\
+			Classifier & Multinomial NB \\
 			Parameters & 
 			\begin{tabular}{l} 
-				One-v-One \\ 
-				\& $C = 0.1$
+				Without Priors \\ 
+				\& $\alpha = 1$
 			\end{tabular} \\
 			\hline\hline
 			Uniform Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.64 \\
-			Precisions (+, n, --) 	& 0.70, 0.53, 0.68 \\
-			Recalls (+, n, --) 		& 0.67, 0.55, 0.69 \\
-			$F_1$ Scores (+, n, --) & 0.69, 0.54, 0.69 \\
+			Accuracy & 0.62 \\
+			Precisions (+, n, --) 	& 0.65, 0.56, 0.63 \\
+			Recalls (+, n, --) 		& 0.71, 0.40, 0.75 \\
+			$F_1$ Scores (+, n, --) & 0.68, 0.47, 0.69 \\
 			\hline\hline
 			Given Training & Given Testing \\
 			\hline
-			Accuracy & 0.65 \\
-			Precisions (+, n, --) 	& 0.66, 0.66, 0.54 \\
-			Recalls (+, n, --) 		& 0.46, 0.85, 0.26 \\
-			$F_1$ Scores (+, n, --) & 0.54, 0.74, 0.35 \\
+			Accuracy & 0.63 \\
+			Precisions (+, n, --) 	& 0.65, 0.63, 0.59 \\
+			Recalls (+, n, --) 		& 0.35, 0.91, 0.10 \\
+			$F_1$ Scores (+, n, --) & 0.46, 0.75, 0.16 \\
 			\hline\hline
 			Given Training & Uniform Testing \\
 			\hline
-			Accuracy & 0.65 \\
-			Precisions (+, n, --) 	& 0.85, 0.50, 0.92 \\
-			Recalls (+, n, --) 		& 0.61, 0.91, 0.43 \\
-			$F_1$ Scores (+, n, --) & 0.71, 0.65, 0.58 \\
+			Accuracy & 0.59 \\
+			Precisions (+, n, --) 	& 0.84, 0.45, 0.95 \\
+			Recalls (+, n, --) 		& 0.52, 0.93, 0.31 \\
+			$F_1$ Scores (+, n, --) & 0.65, 0.61, 0.46 \\
 			\hline\hline
 			Uniform Training & Given Testing \\
 			\hline
-			Accuracy & 0.72 \\
-			Precisions (+, n, --) 	& 0.66, 0.89, 0.55 \\
-			Recalls (+, n, --) 		& 0.82, 0.62, 0.92 \\
-			$F_1$ Scores (+, n, --) & 0.73, 0.74, 0.69 \\
+			Accuracy & 0.64 \\
+			Precisions (+, n, --) 	& 0.56, 0.89, 0.48 \\
+			Recalls (+, n, --) 		& 0.83, 0.48, 0.89 \\
+			$F_1$ Scores (+, n, --) & 0.67, 0.63, 0.63 \\
 			\hline
 		\end{tabular}
 		\caption{Classifer 3 metrics}
@@ -768,7 +732,6 @@ Per-class metrics are shown in order of postive (+), neutral (n), then negative 
 
 \subsection{How $M_f$ modifies the models}\label{sec:mfanalysis}
 
-
 It appears that $\emph{accuracy} \varpropto M_f$.
 The number of maximum features $M_f$ does affect the accuracy of models, as shown in Figure~\ref{fig:accvsmf}.
 As $M_f$ increases, the accuracy of the top model increases as well, albeit asymptotically.
@@ -776,91 +739,97 @@ This confirms that a larger feature space allows for more accurate results to a 
 With 10 features per feature type, the odds of running into an instance without any of these is higher. 
 As the feature space increases in size, more features can be considered when classifying a new instance, 
 meaning more instances are likely to contain at least one feature to consider for classification.
-Past $M_f = 5000$, the gains in accuracy become negligible.
-Despite this, the accuracy does increase, 
-leading to the use of $M_f = 10000$ to generate and evalute the final models.
+These results merit the use of $M_f = 10000$ to generate and evaluate the final models.
 
+The highest 5th percentile accuracy models for all $M_f$ values tested are consistently linear regressions.
+This is a testament to the classifier's versatility with both small and large feature spaces.
 
-The average accuracy for cross-validation scores over the splits with the given sentiment distributions does not follow the same relationship to $M_f$ as the other accuracy scores.
-This could potentially suggest that past $M_f = 1000$, training or testing on the given sentiments is unadvisable.
+The accuracies on the training data are consistently higher than those of the testing data (Figure~\ref{fig:accvsmf}).
+As $M_f$ increases, the difference between the training and testing accuracies widens. 
+This may be an indicator of overfitting in the data. 
 
-
-
-The modal top classifier within this test is the logistic regression.
-These results highlight the model's versatility with different sizes of the feature space.
-
-
-One outlier is the linear support vector classifier at $M_f = 1000$. 
-This confirms that selecting the final models required deeper investigation into classifier results than simple cross-validation.
-Such analysis occurs in Sections~\ref{sec:bestparams} and \ref{sec:agnostic}.
+Despite the risk of overfitting, 
+the final models are trained with $M_f = 10000$ so as to maximise the result accuracy.
+My theory is that using any larger value of $M_f$ will result in diminishing returns in testing accuracy, 
+as the model starts to overfit the training data.
 
 \subsection{The best classifier/parameter configurations}\label{sec:bestparams}
 
-% The best classifier configurations with a large feature space are naive Bayes estimators, as shown in Section~\ref{sec:top3}.
-% The highest scoring model is the Bernoulli naive Bayes, with $\alpha = 1$ laplace smoothing and sentiment/class priors included.
+With the selected feature space $M_f = 10000$, the highest 5th percentile accuracies come from:
+\begin{enumerate}
+	\item the logistic regression classifier,
+ 	\item the linear support vector classifier (SVC) with regularization $C = 0.1$,
+  	\item the multinomial naive Bayes classifier with laplace smoothing $\alpha = 1$ and without priors
+\end{enumerate}
+as per Section~\ref{sec:top3}.
 
-Of the classifiers evaluated at $M_f = 10000$, 
-the top three models (shown in Tables~\ref{tbl:1st10000}, \ref{tbl:2nd10000}, and \ref{tbl:3rd10000}) are comprised of two logistic regressions and a linear support vector classifier.
-Interestingly, the Bernoulli naive Bayes classifiers do not appear in the top classifier list.
-The nature of the features and tweet lengths means that almost all the features are binary events (Bernoulli trials),
-making the naive Bayes classifier very applicable \cite{tweetlen}. 
-On the other hand, logistic regressions by nature are also well suited to binary features,
-and have improved performance through the use of optimization algorithms.
-
-
-The Classifiers 1, 2, and 3 all perform better than the baseline model (see Section~\ref{sec:4metrics}). 
-The only exception is in the recalls of the 0-R, in which the baseline model has the best results.
-However, this is misleading since the 0-R baseline classifier labels all instances with the same class, 
-guarranteeing that one of the classes has no false negative values.
+The logistic regression relies on optimization, mapping instances to a multinomial class distribution.
+This classifier scores the highest of all candidates, likely due to its optimization algorithm.
+While optimization is slow (and not guaranteed to find the ideal fit), 
+the model weights features proportionally to their importance sentiment classification.
 
 
-\subsection{The most sentiment distribution agnostic classifier}\label{sec:agnostic}
+The linear SVC also relies on optimization to find supports to generate lines separating the instances by sentiment.
+It applies a one-vs-rest decision function, generating three lines separating each sentiment from the other two.
+This makes the model effective at determining classes which are very different from the rest.
+However, a weakness of the SVC is in discerning between classes with similar features. 
+Furthermore, the model is highly reliant on a small subset of instance vectors to classify all other instances. 
+While this simplicity reduces memory use, it can also abstract away useful distinctions for specific features.
 
-Since the \texttt{Test.csv} and \texttt{Train.csv} data are not guarranteed to follow the same sentiment distributions,
-the true best model is selected by comparing $F_1$ scores.
+
+The multinomial naive Bayes performs better than the Bernoulli naive Bayes classifier.
+This result is not expected due to the expectation of binary features explained in Section~\ref{sec:vectorization}.
+This naive Bayes model also performs best without fitting sentiment priors.
+The consideration of priors is heavily reliant on whether the sentiment distribution in the \texttt{Test.csv} matches the \texttt{Train.csv}.
+The naive Bayes classifier relies on simple laplace smoothing $\alpha = 1$. 
+As $\alpha$ increases or decreases,
+missing features become either too underrepresented or overrepresented (negatively affecting accuracy).
+
+The Classifiers 1, 2, and 3 all perform better than the baseline model (Table~\ref{tbl:metrics-base10000}). 
+The only exception is the recall of the 0-R, in which the baseline model has the best results for some classes.
+This is misleading since the 0-R baseline classifier labels all instances with the same sentiment, 
+guaranteeing that one of the classes has no false negatives.
+
+
+\subsection{The most sentiment-distribution-agnostic classifier}\label{sec:agnostic}
+
+Since the \texttt{Test.csv} and \texttt{Train.csv} data are not guaranteed to follow the same sentiment distributions,
+the true best model is selected by comparing the evaluation metrics over different train/test distribution splits.
 As shown in Section~\ref{sec:4metrics}, the sentiment distribution of the training and testing data influences the evaluation metrics of classifiers.
 
+Based on the accuracies only, training on a uniform sentiment distribution is preferable.
+However, certain models may perform better for certain sentiments.
+Since neutral sentiments are most prominent in the training set, models that do not consider the prior sentiment distributions 
+(either due to a parameter or due to the training set used) generally yield higher neutral precisions than recalls,
+indicating more false non-neutral than false neutral classifications.
 
-From the accuracies of the top 3 models on different distribution splits (Tables~\ref{tbl:metrics-1st10000}, \ref{tbl:metrics-2nd10000}, and \ref{tbl:metrics-3rd10000}), 
-training on given data and testing on uniform data yields consistently high precisions and recalls for all sentiments.
-This is the opposite for training on given data distributions, where precisions are higher than recalls for non-neutral sentiments, 
-suggesting that confirming a non-neutral sentiment at the point of classification proves difficult.
+For most applications of sentiment analysis the priority is to identify non-neutral instances.
+Therefore, high precisions and recalls for non-neutral labels are prioritised.
+This can be simplified into finding the models which generate the highest non-neutral $F_1$ scores.
+Comparing Tables~\ref{tbl:metrics-1st10000}, \ref{tbl:metrics-2nd10000}, and \ref{tbl:metrics-3rd10000}, 
+the linear SVC and logistic regression have the best $F_1$ scores in these sentiments.
+Specifically the best scores are generated on uniform training sets, where both models perform similarly in precision and recall.
+Therefore, either the linear SVC or the logistic regression can reliably be used on the \texttt{Test.csv} data,
+given they are trained on a maximal subset of the training data with uniform sentiment distribution.
 
-
-Thus, training on the data with the given sentiment distribution is not preferrable if the true testing data does not follow the same sentiment distribution.
-In fact, training on uniform data generally yields better accuracy and higher $F_1$ scores, 
-even if the distribution of sentiments in the test set is not uniform.
-Therefore, the best-performing models non-neutral sentiments are trained on the maximum uniform subset instead of the full dataset.
-
-
-The only hyperparameter that differs between Classifier 1 and Classifier 2 is inclusion of intercept terms in the regression.
-The inclusion of intercepts in the regression models can bias the models towards different sentiments.
-To measure this bias, the 
-% To consider how the hyperparameter affects the model, 
-% high precision and high recall (or simply the $F_1$ Scores) for non-neutral classes are compared, 
-% since neutral sentiment is common in the training set.
-% Fitting the prior labels reduces the accuracy when training on the given set and testing on the uniform set.
-% This is a small difference of $0.01$ in accuracy. 
-% However, it confirms that if the \texttt{Test.csv} dataset has a different sentiment distribution to the \texttt{Train.csv}, 
-% it is preferrable to prevent prior distributions from influencing predictions.
-
-
+\pagebreak
 \section{Conclusions}
 % Conclusion: Demonstrate your identified knowledge about the problem.
-Performing sentiment analysis on tweets is a difficult task.
-Vectorization of the features yields a large feature space, which contributes to the time and space complexity in training classifiers.
-While minimizing the feature space reduces complexity, it also sacrifices the accuracy of classifiers (some more than others).
 
-Testing a multitude of different classifier combinations, the highest scoring (calculated by Section~\ref{sec:choosing2}) classifiers are naive Bayes classifiers, 
-with the best model relying specifically on a Bernoulli naive Bayes classifier.
-Bernoulli models make sense in this case, given the small sizes of tweets meaning features appear no more than once in an instance \cite{tweetlen}.
-With little information on the \texttt{Test.csv} set, 
-the models generated need to be highly accurate regardless of the distributions of the training sentiments.
+Performing accurate sentiment analysis on tweets is difficult.
+Vectorization of the features yields a large feature space, 
+which contributes to the time and space complexity in training classifiers and poses the risk of overfitting results.
+While minimizing the feature space reduces model training complexity, it also sacrifices the accuracy of classifiers.
 
-\textbf{Of the classifiers considered, the most efficacious, 
-is a Bernoulli naive Bayes model trained on the maximum subset of data with uniform sentiment distribution with laplace smoothing $\alpha = 1$, 
-without fitting prior distributions.}
-
+Testing a multiple classifier combinations, 
+the most accurate classifiers by estimated 5th percentile are the logistic regression, 
+linear SVC ($C=0.1$), and multinomial naive Bayes ($\alpha=1$ and without priors).
+With little information on the \texttt{Test.csv} data, 
+the chosen models need to be highly accurate regardless of distributions of the testing or training sets.
+Both the linear SVC and logistic regression can be used classify the \texttt{Test.csv} instances.
+However, given the disadvantages of the linear SVC's reliance on a one-versus-rest decision function,
+\textbf{I choose to generate the final predictions on a logistic regression trained on a maximals subset of instances with uniform sentiment distribution.}
+\vfill
 \pagebreak
 \bibliographystyle{acl}
 \bibliography{citations}
