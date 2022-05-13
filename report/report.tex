@@ -772,7 +772,7 @@ the model weights features proportionally to their importance sentiment classifi
 The linear SVC also relies on optimization to find supports to generate lines separating the instances by sentiment.
 It applies a one-vs-rest decision function, generating three lines separating each sentiment from the other two.
 This makes the model effective at determining classes which are very different from the rest.
-However, a weakness of the SVC is in discerning between classes with similar features. 
+However, a weakness of the SVC is in distinguishing between classes with similar features. 
 Furthermore, the model is highly reliant on a small subset of instance vectors to classify all other instances. 
 While this simplicity reduces memory use, it can also abstract away useful distinctions for specific features.
 
