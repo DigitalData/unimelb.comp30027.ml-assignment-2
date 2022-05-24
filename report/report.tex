@@ -134,71 +134,102 @@ The three chosen models (Classifiers 1, 2, and 3) need to outperform this.
 The following classifier/parameter combinations are considered for the final three models. 
 
 \textbf{Multinomial/Bernoulli Naive Bayes}:
-\begin{table}[h]
-	\begin{center}
-		\begin{tabular}{|c|c|}			
-			\hline
-			Parameter & Options \\
-			\hline
-			Include Priors & Yes, No \\
-			$\alpha$ Smoothing & 0, 1, 10 \\
-			\hline
-		\end{tabular}
-		\caption{Naive Bayes Parameters}
-		\label{tbl:nb-options}
-	\end{center}
-\end{table}
+% \begin{table}[h]
+% 	\begin{center}
+% 		\begin{tabular}{|c|c|}			
+% 			\hline
+% 			Parameter & Options \\
+% 			\hline
+% 			Include Priors & Yes, No \\
+% 			$\alpha$ Smoothing & 0, 1, 10 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Naive Bayes Parameters}
+% 		\label{tbl:nb-options}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{tb nb.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:nb-options}
+\end{figure} 
+
+
 
 \textbf{Logistic Regressions}:
 Logistic regressions do not have parameters modified.
 For the logistic regressions, \texttt{saga} optimization is used, as it is recommended for larger datasets \cite{skl}.
 
 \textbf{Decision Trees}:
-\begin{table}[h]
-	\begin{center}
-		\begin{tabular}{|c|c|}			
-			\hline
-			Parameter & Options \\
-			\hline
-			Maximum Depth & 1, 100, 500 \\
-			\hline
-		\end{tabular}
-		\caption{Decision Tree Parameters}
-		\label{tbl:dt-options}
-	\end{center}
-\end{table}
+% \begin{table}[h]
+% 	\begin{center}
+% 		\begin{tabular}{|c|c|}			
+% 			\hline
+% 			Parameter & Options \\
+% 			\hline
+% 			Maximum Depth & 1, 100, 500 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Decision Tree Parameters}
+% 		\label{tbl:dt-options}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{tb dt.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:dt-options}
+\end{figure} 
 
 \textbf{$K$ Nearest Neighbours}:
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|c|c|}			
-			\hline
-			Parameter & Options \\
-			\hline
-			$K$ & 1, 10, 100, 500 \\
-			Vote Weighting & \texttt{uniform}, \texttt{distance} \\
-			\hline
-		\end{tabular}
-		\caption{K-Nearest Neighbour Parameters}
-		\label{tbl:knn-options}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|c|c|}			
+% 			\hline
+% 			Parameter & Options \\
+% 			\hline
+% 			$K$ & 1, 10, 100, 500 \\
+% 			Vote Weighting & \texttt{uniform}, \texttt{distance} \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{K-Nearest Neighbour Parameters}
+% 		\label{tbl:knn-options}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{tb knn.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:knn-options}
+\end{figure} 
+
 
 \pagebreak
 \textbf{Linear Support Vector Classifiers}:
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|c|c|}			
-			\hline
-			Parameter & Options \\
-			\hline
-			Regularization $C$ & 0.1, 1, 3 \\
-			\hline
-		\end{tabular}
-		\caption{Linear Support Vector Classifier Parameters}
-		\label{tbl:svc-options}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|c|c|}			
+% 			\hline
+% 			Parameter & Options \\
+% 			\hline
+% 			Regularization $C$ & 0.1, 1, 3 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Linear Support Vector Classifier Parameters}
+% 		\label{tbl:svc-options}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{tb svc.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:svc-options}
+\end{figure} 
 
 
 \subsection{Evaluation}\label{sec:evaluations}
@@ -256,86 +287,122 @@ The metrics are then compared to determine which models are agnostic to sentimen
 After generating classifiers for each of the $M_f$ values, 
 the following boasted the highest scores calculated in Section~\ref{sec:choosing2}.
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Logistic Regression \\
-			\hline\hline
-			$\bar{x}$ &  0.6009\\
-			$s$ &  0.03539 \\
-			95\% C.I. Bound & 0.5804 \\
-			\hline
-		\end{tabular}
-		\caption{$M_f = 10$ Top classifier}
-		\label{tbl:mf10}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Logistic Regression \\
+% 			\hline\hline
+% 			$\bar{x}$ &  0.6009\\
+% 			$s$ &  0.03539 \\
+% 			95\% C.I. Bound & 0.5804 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{$M_f = 10$ Top classifier}
+% 		\label{tbl:mf10}
+% 	\end{center}
+% \end{table}
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Logistic Regression \\
-			\hline\hline
-			$\bar{x}$ &  0.6334\\
-			$s$ &  0.01925 \\
-			95\% C.I. Bound & 0.6222 \\
-			\hline
-		\end{tabular}
-		\caption{$M_f = 100$ Top classifier}
-		\label{tbl:mf100}
-	\end{center}
-\end{table}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{mf10.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:mf10}
+\end{figure} 
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Logistic Regression \\
-			\hline\hline
-			$\bar{x}$ &  0.6599\\
-			$s$ &  0.008548 \\
-			95\% C.I. Bound & 0.6549 \\
-			\hline
-		\end{tabular}
-		\caption{$M_f = 1000$ Top classifier}
-		\label{tbl:mf1000}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Logistic Regression \\
+% 			\hline\hline
+% 			$\bar{x}$ &  0.6334\\
+% 			$s$ &  0.01925 \\
+% 			95\% C.I. Bound & 0.6222 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{$M_f = 100$ Top classifier}
+% 		\label{tbl:mf100}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{mf100.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:mf100}
+\end{figure} 
+
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Logistic Regression \\
+% 			\hline\hline
+% 			$\bar{x}$ &  0.6599\\
+% 			$s$ &  0.008548 \\
+% 			95\% C.I. Bound & 0.6549 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{$M_f = 1000$ Top classifier}
+% 		\label{tbl:mf1000}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{mf1000.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:mf1000}
+\end{figure} 
 
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Logistic Regression \\
-			\hline\hline
-			$\bar{x}$ &  0.6662\\
-			$s$ & 0.006952 \\
-			95\% C.I. Bound & 0.6621 \\
-			\hline
-		\end{tabular}
-		\caption{$M_f = 5000$ Top classifier}
-		\label{tbl:mf5000}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Logistic Regression \\
+% 			\hline\hline
+% 			$\bar{x}$ &  0.6662\\
+% 			$s$ & 0.006952 \\
+% 			95\% C.I. Bound & 0.6621 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{$M_f = 5000$ Top classifier}
+% 		\label{tbl:mf5000}
+% 	\end{center}
+% \end{table}
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Logistic Regression \\
-			\hline\hline
-			$\bar{x}$ &  0.6676\\
-			$s$ & 0.006673 \\
-			95\% C.I. Bound & 0.6637 \\
-			\hline
-		\end{tabular}
-		\caption{$M_f = 10000$ Top classifier}
-		\label{tbl:mf10000}
-	\end{center}
-\end{table}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{mf5000.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:mf5000}
+\end{figure} 
+
+
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Logistic Regression \\
+% 			\hline\hline
+% 			$\bar{x}$ &  0.6676\\
+% 			$s$ & 0.006673 \\
+% 			95\% C.I. Bound & 0.6637 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{$M_f = 10000$ Top classifier}
+% 		\label{tbl:mf10000}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{mf10000.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:mf10000}
+\end{figure} 
 
 These results are used to generate Figure~\ref{fig:accvsmf}.
 
@@ -350,62 +417,83 @@ These results are used to generate Figure~\ref{fig:accvsmf}.
 
 The following classifiers have the highest scores calculated in Section~\ref{sec:choosing2}:
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Logistic Regression \\
-			\hline\hline
-			$\bar{x}$ &  0.6676\\
-			$s$ & 0.006673 \\
-			95\% C.I. Bound & 0.6637 \\
-			\hline
-		\end{tabular}
-		\caption{Classifier 1}
-		\label{tbl:1st10000}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Logistic Regression \\
+% 			\hline\hline
+% 			$\bar{x}$ &  0.6676\\
+% 			$s$ & 0.006673 \\
+% 			95\% C.I. Bound & 0.6637 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifier 1}
+% 		\label{tbl:1st10000}
+% 	\end{center}
+% \end{table}
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Linear SVC \\
-			Parameters & 
-			\begin{tabular}{l} 
-				$C = 0.1$
-			\end{tabular} \\
-			\hline\hline
-			$\bar{x}$ &  0.6615\\
-			$s$ & 0.005878 \\
-			95\% C.I. Bound & 0.6581 \\
-			\hline
-		\end{tabular}
-		\caption{Classifier 2}
-		\label{tbl:2nd10000}
-	\end{center}
-\end{table}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{c1s.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:1st10000}
+\end{figure} 
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Multinomial Naive Bayes \\
-			Parameters & 
-			\begin{tabular}{l} 
-				Without Priors \\ 
-				\& $\alpha = 1$
-			\end{tabular} \\
-			\hline\hline
-			$\bar{x}$ &  0.6434\\
-			$s$ &   0.006020 \\
-			95\% C.I. Bound & 0.6399 \\
-			\hline
-		\end{tabular}
-		\caption{Classifier 3}
-		\label{tbl:3rd10000}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Linear SVC \\
+% 			Parameters & 
+% 			\begin{tabular}{l} 
+% 				$C = 0.1$
+% 			\end{tabular} \\
+% 			\hline\hline
+% 			$\bar{x}$ &  0.6615\\
+% 			$s$ & 0.005878 \\
+% 			95\% C.I. Bound & 0.6581 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifier 2}
+% 		\label{tbl:2nd10000}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{c2s.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:1nd10000}
+\end{figure} 
+
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Multinomial Naive Bayes \\
+% 			Parameters & 
+% 			\begin{tabular}{l} 
+% 				Without Priors \\ 
+% 				\& $\alpha = 1$
+% 			\end{tabular} \\
+% 			\hline\hline
+% 			$\bar{x}$ &  0.6434\\
+% 			$s$ &   0.006020 \\
+% 			95\% C.I. Bound & 0.6399 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifier 3}
+% 		\label{tbl:3rd10000}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{c3s.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:3rd10000}
+\end{figure} 
 
 \subsection{Evaluation metrics for the final 4 models}\label{sec:4metrics}
 
@@ -421,45 +509,52 @@ Per-class metrics are shown in order of postive (+), neutral (n), then negative 
 
 % \subsubsection{Results for Classifier 1}\label{sec:appc1}
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Logistic Regression \\
-			\hline\hline
-			Uniform Training & Uniform Testing \\
-			\hline
-			Accuracy & 0.63 \\
-			Precisions (+, n, --)	& 0.68, 0.53, 0.68 \\
-			Recalls (+, n, --) 		& 0.66, 0.54, 0.69 \\
-			$F_1$ Scores (+, n, --) & 0.67, 0.54, 0.69 \\
-			\hline\hline
-			Given Training & Given Testing \\
-			\hline
-			Accuracy & 0.66 \\
-			Precisions (+, n, --) 	& 0.64, 0.67, 0.56 \\
-			Recalls (+, n, --) 		& 0.49, 0.84, 0.29 \\
-			$F_1$ Scores (+, n, --) & 0.55, 0.74, 0.38 \\
-			\hline\hline
-			Given Training & Uniform Testing \\
-			\hline
-			Accuracy & 0.65 \\
-			Precisions (+, n, --) 	& 0.84, 0.50, 0.88 \\
-			Recalls (+, n, --) 		& 0.60, 0.90, 0.44 \\
-			$F_1$ Scores (+, n, --) & 0.70, 0.65, 0.59 \\
-			\hline\hline
-			Uniform Training & Given Testing \\
-			\hline
-			Accuracy & 0.75 \\
-			Precisions (+, n, --) 	& 0.66, 0.92, 0.60 \\
-			Recalls (+, n, --) 		& 0.85, 0.64, 0.96 \\
-			$F_1$ Scores (+, n, --) & 0.74, 0.76, 0.74 \\
-			\hline
-		\end{tabular}
-		\caption{Classifier 1 metrics}
-		\label{tbl:metrics-1st10000}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Logistic Regression \\
+% 			\hline\hline
+% 			Uniform Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.63 \\
+% 			Precisions (+, n, --)	& 0.68, 0.53, 0.68 \\
+% 			Recalls (+, n, --) 		& 0.66, 0.54, 0.69 \\
+% 			$F_1$ Scores (+, n, --) & 0.67, 0.54, 0.69 \\
+% 			\hline\hline
+% 			Given Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.66 \\
+% 			Precisions (+, n, --) 	& 0.64, 0.67, 0.56 \\
+% 			Recalls (+, n, --) 		& 0.49, 0.84, 0.29 \\
+% 			$F_1$ Scores (+, n, --) & 0.55, 0.74, 0.38 \\
+% 			\hline\hline
+% 			Given Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.65 \\
+% 			Precisions (+, n, --) 	& 0.84, 0.50, 0.88 \\
+% 			Recalls (+, n, --) 		& 0.60, 0.90, 0.44 \\
+% 			$F_1$ Scores (+, n, --) & 0.70, 0.65, 0.59 \\
+% 			\hline\hline
+% 			Uniform Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.75 \\
+% 			Precisions (+, n, --) 	& 0.66, 0.92, 0.60 \\
+% 			Recalls (+, n, --) 		& 0.85, 0.64, 0.96 \\
+% 			$F_1$ Scores (+, n, --) & 0.74, 0.76, 0.74 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifier 1 metrics}
+% 		\label{tbl:metrics-1st10000}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{c1m.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:metrics-1st10000}
+\end{figure} 
 
 % \begin{figure}[H]
 % 	\centering
@@ -492,49 +587,56 @@ Per-class metrics are shown in order of postive (+), neutral (n), then negative 
 % \pagebreak
 % \subsubsection{Results for Classifier 2}\label{sec:appc2}
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Linear SVC \\
-			Parameters & 
-			\begin{tabular}{l} 
-				$C = 0.1$
-			\end{tabular} \\
-			\hline\hline
-			Uniform Training & Uniform Testing \\
-			\hline
-			Accuracy & 0.64 \\
-			Precisions (+, n, --) 	& 0.67, 0.54, 0.68 \\
-			Recalls (+, n, --) 		& 0.68, 0.52, 0.71 \\
-			$F_1$ Scores (+, n, --) & 0.68, 0.53, 0.70 \\
-			\hline\hline
-			Given Training & Given Testing \\
-			\hline
-			Accuracy & 0.65 \\
-			Precisions (+, n, --) 	& 0.60, 0.68, 0.56 \\
-			Recalls (+, n, --) 		& 0.52, 0.80, 0.31 \\
-			$F_1$ Scores (+, n, --) & 0.56, 0.73, 0.40 \\
-			\hline\hline
-			Given Training & Uniform Testing \\
-			\hline
-			Accuracy & 0.73 \\
-			Precisions (+, n, --) 	& 0.85, 0.58, 0.92 \\
-			Recalls (+, n, --) 		& 0.71, 0.89, 0.58 \\
-			$F_1$ Scores (+, n, --) & 0.77, 0.70, 0.72 \\
-			\hline\hline
-			Uniform Training & Given Testing \\
-			\hline
-			Accuracy & 0.74 \\
-			Precisions (+, n, --) 	& 0.65, 0.92, 0.59 \\
-			Recalls (+, n, --) 		& 0.86, 0.63, 0.96 \\
-			$F_1$ Scores (+, n, --) & 0.74, 0.75, 0.73 \\
-			\hline
-		\end{tabular}
-		\caption{Classifer 2 metrics}
-		\label{tbl:metrics-2nd10000}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Linear SVC \\
+% 			Parameters & 
+% 			\begin{tabular}{l} 
+% 				$C = 0.1$
+% 			\end{tabular} \\
+% 			\hline\hline
+% 			Uniform Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.64 \\
+% 			Precisions (+, n, --) 	& 0.67, 0.54, 0.68 \\
+% 			Recalls (+, n, --) 		& 0.68, 0.52, 0.71 \\
+% 			$F_1$ Scores (+, n, --) & 0.68, 0.53, 0.70 \\
+% 			\hline\hline
+% 			Given Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.65 \\
+% 			Precisions (+, n, --) 	& 0.60, 0.68, 0.56 \\
+% 			Recalls (+, n, --) 		& 0.52, 0.80, 0.31 \\
+% 			$F_1$ Scores (+, n, --) & 0.56, 0.73, 0.40 \\
+% 			\hline\hline
+% 			Given Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.73 \\
+% 			Precisions (+, n, --) 	& 0.85, 0.58, 0.92 \\
+% 			Recalls (+, n, --) 		& 0.71, 0.89, 0.58 \\
+% 			$F_1$ Scores (+, n, --) & 0.77, 0.70, 0.72 \\
+% 			\hline\hline
+% 			Uniform Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.74 \\
+% 			Precisions (+, n, --) 	& 0.65, 0.92, 0.59 \\
+% 			Recalls (+, n, --) 		& 0.86, 0.63, 0.96 \\
+% 			$F_1$ Scores (+, n, --) & 0.74, 0.75, 0.73 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifer 2 metrics}
+% 		\label{tbl:metrics-2nd10000}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{c2m.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:metrics-2nd10000}
+\end{figure} 
 
 % \begin{figure}[H]
 % 	\centering
@@ -567,50 +669,58 @@ Per-class metrics are shown in order of postive (+), neutral (n), then negative 
 % \pagebreak
 % \subsubsection{Results for Classifier 3}\label{sec:appc3}
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			Classifier & Multinomial NB \\
-			Parameters & 
-			\begin{tabular}{l} 
-				Without Priors \\ 
-				\& $\alpha = 1$
-			\end{tabular} \\
-			\hline\hline
-			Uniform Training & Uniform Testing \\
-			\hline
-			Accuracy & 0.62 \\
-			Precisions (+, n, --) 	& 0.65, 0.56, 0.63 \\
-			Recalls (+, n, --) 		& 0.71, 0.40, 0.75 \\
-			$F_1$ Scores (+, n, --) & 0.68, 0.47, 0.69 \\
-			\hline\hline
-			Given Training & Given Testing \\
-			\hline
-			Accuracy & 0.63 \\
-			Precisions (+, n, --) 	& 0.65, 0.63, 0.59 \\
-			Recalls (+, n, --) 		& 0.35, 0.91, 0.10 \\
-			$F_1$ Scores (+, n, --) & 0.46, 0.75, 0.16 \\
-			\hline\hline
-			Given Training & Uniform Testing \\
-			\hline
-			Accuracy & 0.59 \\
-			Precisions (+, n, --) 	& 0.84, 0.45, 0.95 \\
-			Recalls (+, n, --) 		& 0.52, 0.93, 0.31 \\
-			$F_1$ Scores (+, n, --) & 0.65, 0.61, 0.46 \\
-			\hline\hline
-			Uniform Training & Given Testing \\
-			\hline
-			Accuracy & 0.64 \\
-			Precisions (+, n, --) 	& 0.56, 0.89, 0.48 \\
-			Recalls (+, n, --) 		& 0.83, 0.48, 0.89 \\
-			$F_1$ Scores (+, n, --) & 0.67, 0.63, 0.63 \\
-			\hline
-		\end{tabular}
-		\caption{Classifer 3 metrics}
-		\label{tbl:metrics-3rd10000}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			Classifier & Multinomial NB \\
+% 			Parameters & 
+% 			\begin{tabular}{l} 
+% 				Without Priors \\ 
+% 				\& $\alpha = 1$
+% 			\end{tabular} \\
+% 			\hline\hline
+% 			Uniform Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.62 \\
+% 			Precisions (+, n, --) 	& 0.65, 0.56, 0.63 \\
+% 			Recalls (+, n, --) 		& 0.71, 0.40, 0.75 \\
+% 			$F_1$ Scores (+, n, --) & 0.68, 0.47, 0.69 \\
+% 			\hline\hline
+% 			Given Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.63 \\
+% 			Precisions (+, n, --) 	& 0.65, 0.63, 0.59 \\
+% 			Recalls (+, n, --) 		& 0.35, 0.91, 0.10 \\
+% 			$F_1$ Scores (+, n, --) & 0.46, 0.75, 0.16 \\
+% 			\hline\hline
+% 			Given Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.59 \\
+% 			Precisions (+, n, --) 	& 0.84, 0.45, 0.95 \\
+% 			Recalls (+, n, --) 		& 0.52, 0.93, 0.31 \\
+% 			$F_1$ Scores (+, n, --) & 0.65, 0.61, 0.46 \\
+% 			\hline\hline
+% 			Uniform Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.64 \\
+% 			Precisions (+, n, --) 	& 0.56, 0.89, 0.48 \\
+% 			Recalls (+, n, --) 		& 0.83, 0.48, 0.89 \\
+% 			$F_1$ Scores (+, n, --) & 0.67, 0.63, 0.63 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Classifer 3 metrics}
+% 		\label{tbl:metrics-3rd10000}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{c3m.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:metrics-3rd10000}
+\end{figure} 
+
 
 % \begin{figure}[H]
 % 	\centering
@@ -643,48 +753,55 @@ Per-class metrics are shown in order of postive (+), neutral (n), then negative 
 % \pagebreak
 % \subsubsection{Results for the baseline model (Classifier 4)}\label{sec:appc4}
 
-\begin{table}[H]
-	\begin{center}
-		\begin{tabular}{|l|l|}			
-			\hline
-			% Parameter & Value \\
-			% \hline
-			% Classifier & 0-R \\
-			Classifier & 0-R \\
-			\hline\hline
-			Uniform Training & Uniform Testing \\
-			\hline
-			Accuracy & 0.33 \\
-			Precisions (+, n, --) 	& 0.00, 0.00, 0.33 \\
-			Recalls (+, n, --) 		& 0.00, 0.00, 1.00 \\
-			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.50 \\
-			\hline\hline
-			Given Training & Given Testing \\
-			\hline
-			Accuracy & 0.58 \\
-			Precisions (+, n, --) 	& 0.00, 0.58, 0.00 \\
-			Recalls (+, n, --) 		& 0.00, 1.00, 0.00 \\
-			$F_1$ Scores (+, n, --) & 0.00, 0.73, 0.00 \\
-			\hline\hline
-			Given Training & Uniform Testing \\
-			\hline
-			Accuracy & 0.33 \\
-			Precisions (+, n, --) 	& 0.00, 0.33, 0.00 \\
-			Recalls (+, n, --) 		& 0.00, 1.00, 0.00 \\
-			$F_1$ Scores (+, n, --) & 0.00, 0.50, 0.00 \\
-			\hline\hline
-			Uniform Training & Given Testing \\
-			\hline
-			Accuracy & 0.17 \\
-			Precisions (+, n, --) 	& 0.00, 0.00, 0.17 \\
-			Recalls (+, n, --) 		& 0.00, 0.00, 1.00 \\
-			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.29 \\
-			\hline
-		\end{tabular}
-		\caption{Baseline (Classifier 4) metrics}
-		\label{tbl:metrics-base10000}
-	\end{center}
-\end{table}
+% \begin{table}[H]
+% 	\begin{center}
+% 		\begin{tabular}{|l|l|}			
+% 			\hline
+% 			% Parameter & Value \\
+% 			% \hline
+% 			% Classifier & 0-R \\
+% 			Classifier & 0-R \\
+% 			\hline\hline
+% 			Uniform Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.33 \\
+% 			Precisions (+, n, --) 	& 0.00, 0.00, 0.33 \\
+% 			Recalls (+, n, --) 		& 0.00, 0.00, 1.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.50 \\
+% 			\hline\hline
+% 			Given Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.58 \\
+% 			Precisions (+, n, --) 	& 0.00, 0.58, 0.00 \\
+% 			Recalls (+, n, --) 		& 0.00, 1.00, 0.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.00, 0.73, 0.00 \\
+% 			\hline\hline
+% 			Given Training & Uniform Testing \\
+% 			\hline
+% 			Accuracy & 0.33 \\
+% 			Precisions (+, n, --) 	& 0.00, 0.33, 0.00 \\
+% 			Recalls (+, n, --) 		& 0.00, 1.00, 0.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.00, 0.50, 0.00 \\
+% 			\hline\hline
+% 			Uniform Training & Given Testing \\
+% 			\hline
+% 			Accuracy & 0.17 \\
+% 			Precisions (+, n, --) 	& 0.00, 0.00, 0.17 \\
+% 			Recalls (+, n, --) 		& 0.00, 0.00, 1.00 \\
+% 			$F_1$ Scores (+, n, --) & 0.00, 0.00, 0.29 \\
+% 			\hline
+% 		\end{tabular}
+% 		\caption{Baseline (Classifier 4) metrics}
+% 		\label{tbl:metrics-base10000}
+% 	\end{center}
+% \end{table}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{c4m.png}
+	% \caption{Word cloud with modified \texttt{NLTK} stopword removal}
+	\label{tbl:metrics-base10000}
+\end{figure} 
 
 % \begin{figure}[H]
 % 	\centering
@@ -785,7 +902,7 @@ The naive Bayes classifier relies on simple laplace smoothing $\alpha = 1$.
 As $\alpha$ increases or decreases,
 missing features become either too underrepresented or overrepresented (negatively affecting accuracy).
 
-The Classifiers 1, 2, and 3 all perform better than the baseline model (Table~\ref{tbl:metrics-base10000}). 
+The Classifiers 1, 2, and 3 all perform better than the baseline model (Table 17). 
 The only exception is the recall of the 0-R, in which the baseline model has the best results for some classes.
 This is misleading since the 0-R baseline classifier labels all instances with the same sentiment, 
 guaranteeing that one of the classes has no false negatives.
@@ -806,7 +923,7 @@ indicating more false non-neutral than false neutral classifications.
 For most applications of sentiment analysis the priority is to identify non-neutral instances.
 Therefore, high precisions and recalls for non-neutral labels are prioritised.
 This can be simplified into finding the models which generate the highest non-neutral $F_1$ scores.
-Comparing Tables~\ref{tbl:metrics-1st10000}, \ref{tbl:metrics-2nd10000}, and \ref{tbl:metrics-3rd10000}, 
+Comparing Tables 15, 16, and 17, 
 the linear SVC and logistic regression have the best $F_1$ scores in these sentiments.
 Specifically the best scores are generated on uniform training sets, where both models perform similarly in precision and recall.
 Therefore, either the linear SVC or the logistic regression can reliably be used on the \texttt{Test.csv} data,
